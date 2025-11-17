@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { initCommand } from './commands/init.js';
 
 const program = new Command();
 
@@ -9,14 +10,14 @@ program
   .description('Minimal, AI-friendly CLI for tracking project progress across sessions')
   .version('0.1.0');
 
-// track init [name]
+// track init [name] [-F|--force]
 program
   .command('init')
   .description('Initialize a new track project in the current directory')
   .argument('[name]', 'Project name (defaults to directory name)')
-  .action((name?: string) => {
-    console.log('track init - not yet implemented');
-    console.log('name:', name);
+  .option('-F, --force', 'Overwrite existing .track directory if present')
+  .action((name: string | undefined, options: { force?: boolean }) => {
+    initCommand(name, options.force);
   });
 
 // track new "<title>" [--parent <track-id>] [--summary "..."] [--next "..."] [--file <file-path>]...
