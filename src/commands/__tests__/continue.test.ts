@@ -319,7 +319,7 @@ describe('continue command', () => {
             summary: 'Summary',
             next: 'Next',
           });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 
@@ -345,7 +345,7 @@ describe('continue command', () => {
             summary: 'Summary',
             next: 'Next',
           });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 
@@ -384,7 +384,7 @@ describe('continue command', () => {
             next: 'Next',
             status: 'invalid_status',
           });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 
@@ -394,9 +394,7 @@ describe('continue command', () => {
         const errors = consoleMock.getErrors();
         expect(errors.some((err) => err.includes('Invalid status: invalid_status'))).toBe(true);
         expect(
-          errors.some((err) =>
-            err.includes('planned, in_progress, done, blocked, superseded')
-          )
+          errors.some((err) => err.includes('planned, in_progress, done, blocked, superseded'))
         ).toBe(true);
       });
     });

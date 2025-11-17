@@ -95,7 +95,7 @@ function outputHuman(tracks: TrackWithDetails[]): void {
 function printTrack(
   track: TrackWithDetails,
   trackMap: Map<string, TrackWithDetails>,
-  depth: number,
+  depth: number
 ): void {
   const indent = '  '.repeat(depth);
 

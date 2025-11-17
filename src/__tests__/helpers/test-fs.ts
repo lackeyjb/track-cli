@@ -16,7 +16,7 @@ export function createTempDir(): string {
 export function cleanupTempDir(dirPath: string): void {
   try {
     fs.rmSync(dirPath, { recursive: true, force: true });
-  } catch (error) {
+  } catch {
     // Ignore cleanup errors
   }
 }

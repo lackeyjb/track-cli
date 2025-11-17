@@ -117,7 +117,7 @@ describe('init command', () => {
         // Try to initialize again
         try {
           initCommand('Test2');
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 
@@ -141,7 +141,7 @@ describe('init command', () => {
 
         try {
           initCommand('Test2');
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 

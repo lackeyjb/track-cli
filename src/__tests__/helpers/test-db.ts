@@ -22,7 +22,7 @@ export async function withTestDatabase<T>(fn: () => T | Promise<T>): Promise<T> 
     process.chdir(originalCwd);
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   }

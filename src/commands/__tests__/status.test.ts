@@ -151,9 +151,7 @@ describe('status command', () => {
 
         const rootTrack = jsonOutput.tracks.find((t: any) => t.parent_id === null);
         const featureTrack = jsonOutput.tracks.find((t: any) => t.id === featureId);
-        const taskTrack = jsonOutput.tracks.find(
-          (t: any) => t.parent_id === featureId
-        );
+        const taskTrack = jsonOutput.tracks.find((t: any) => t.parent_id === featureId);
 
         expect(rootTrack.kind).toBe('super');
         expect(featureTrack.kind).toBe('feature');
@@ -419,7 +417,7 @@ describe('status command', () => {
       await withTempDir(() => {
         try {
           statusCommand({ json: false });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 

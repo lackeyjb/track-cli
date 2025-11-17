@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  initializeDatabase,
   createTrack,
   getTrack,
   trackExists,
@@ -14,7 +13,6 @@ import {
 import { withTestDatabase } from '../../__tests__/helpers/test-db.js';
 import type { CreateTrackParams, UpdateTrackParams } from '../../models/types.js';
 import fs from 'fs';
-import path from 'path';
 
 describe('database storage', () => {
   describe('initializeDatabase', () => {
@@ -35,9 +33,7 @@ describe('database storage', () => {
         const db = getDatabase();
         try {
           const result = db
-            .prepare(
-              "SELECT sql FROM sqlite_master WHERE type='table' AND name='tracks'"
-            )
+            .prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='tracks'")
             .get() as { sql: string } | undefined;
 
           expect(result).toBeDefined();
@@ -61,9 +57,7 @@ describe('database storage', () => {
         const db = getDatabase();
         try {
           const result = db
-            .prepare(
-              "SELECT sql FROM sqlite_master WHERE type='table' AND name='track_files'"
-            )
+            .prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='track_files'")
             .get() as { sql: string } | undefined;
 
           expect(result).toBeDefined();

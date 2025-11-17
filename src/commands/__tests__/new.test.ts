@@ -209,7 +209,7 @@ describe('new command', () => {
             summary: '',
             next: '',
           });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 
@@ -236,7 +236,7 @@ describe('new command', () => {
             summary: '',
             next: '',
           });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 
@@ -262,7 +262,7 @@ describe('new command', () => {
             summary: '',
             next: '',
           });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 
@@ -286,7 +286,7 @@ describe('new command', () => {
             summary: '',
             next: '',
           });
-        } catch (error) {
+        } catch {
           // Expected to throw due to process.exit mock
         }
 

@@ -10,7 +10,7 @@ import type { Track, TrackWithDetails, Kind } from './types.js';
  */
 export function buildTrackTree(
   tracks: Track[],
-  fileMap: Map<string, string[]>,
+  fileMap: Map<string, string[]>
 ): TrackWithDetails[] {
   // Build lookup maps
   const tracksById = new Map<string, Track>();
