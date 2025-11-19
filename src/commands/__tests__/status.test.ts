@@ -3,7 +3,8 @@ import { statusCommand } from '../status.js';
 import { initCommand } from '../init.js';
 import { newCommand } from '../new.js';
 import { continueCommand } from '../continue.js';
-import { getRootTrack } from '../../storage/database.js';
+import { getDatabasePath } from '../../utils/paths.js';
+import * as lib from '../../lib/db.js';
 import { withTempDir } from '../../__tests__/helpers/test-fs.js';
 import { mockConsole, mockProcessExit } from '../../__tests__/helpers/mocks.js';
 
@@ -68,7 +69,7 @@ describe('status command', () => {
     it('should include all track fields in JSON output', async () => {
       await withTempDir(() => {
         initCommand('Test Project');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -113,7 +114,7 @@ describe('status command', () => {
     it('should include derived kind field', async () => {
       await withTempDir(() => {
         initCommand('Test Project');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -162,7 +163,7 @@ describe('status command', () => {
     it('should include children array with correct child IDs', async () => {
       await withTempDir(() => {
         initCommand('Test Project');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -245,7 +246,7 @@ describe('status command', () => {
     it('should display project name and ID', async () => {
       await withTempDir(() => {
         initCommand('My Project');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -282,7 +283,7 @@ describe('status command', () => {
     it('should display track details with indentation', async () => {
       await withTempDir(() => {
         initCommand('Test');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -314,7 +315,7 @@ describe('status command', () => {
     it('should display files when present', async () => {
       await withTempDir(() => {
         initCommand('Test');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -345,7 +346,7 @@ describe('status command', () => {
     it('should display hierarchical tree structure', async () => {
       await withTempDir(() => {
         initCommand('Test');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();

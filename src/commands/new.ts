@@ -1,7 +1,7 @@
-import { projectExists } from '../utils/paths.js';
+import { projectExists, getDatabasePath } from '../utils/paths.js';
 import { generateId } from '../utils/id.js';
 import { getCurrentTimestamp } from '../utils/timestamp.js';
-import { createTrack, trackExists, addTrackFiles, getRootTrack } from '../storage/database.js';
+import * as lib from '../lib/db.js';
 import type { CreateTrackParams } from '../models/types.js';
 
 /**
@@ -35,10 +35,12 @@ export function newCommand(title: string, options: NewCommandOptions): void {
     process.exit(1);
   }
 
+  const dbPath = getDatabasePath();
+
   // 3. Default to root track if no parent specified (enforce single-root constraint)
   let parentId = options.parent;
   if (!parentId) {
-    const rootTrack = getRootTrack();
+    const rootTrack = lib.getRootTrack(dbPath);
     if (!rootTrack) {
       console.error('Error: No root track found.');
       console.error('This should not happen. Try running "track init" again.');
@@ -48,7 +50,7 @@ export function newCommand(title: string, options: NewCommandOptions): void {
   }
 
   // 4. Validate parent_id exists
-  if (!trackExists(parentId)) {
+  if (!lib.trackExists(dbPath, parentId)) {
     console.error(`Error: Unknown track id: ${parentId}`);
     console.error('The specified parent track does not exist.');
     process.exit(1);
@@ -72,11 +74,11 @@ export function newCommand(title: string, options: NewCommandOptions): void {
     };
 
     // 7. Create track in database
-    createTrack(newTrack);
+    lib.createTrack(dbPath, newTrack);
 
     // 8. Add file associations if provided
     if (options.file && options.file.length > 0) {
-      addTrackFiles(trackId, options.file);
+      lib.addTrackFiles(dbPath, trackId, options.file);
     }
 
     // 9. Success message

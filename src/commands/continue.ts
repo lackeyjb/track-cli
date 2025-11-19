@@ -1,6 +1,6 @@
-import { projectExists } from '../utils/paths.js';
+import { projectExists, getDatabasePath } from '../utils/paths.js';
 import { getCurrentTimestamp } from '../utils/timestamp.js';
-import { updateTrack, trackExists, addTrackFiles } from '../storage/database.js';
+import * as lib from '../lib/db.js';
 import { isValidStatus, VALID_STATUSES } from '../models/types.js';
 import type { UpdateTrackParams, Status } from '../models/types.js';
 
@@ -29,8 +29,10 @@ export function continueCommand(trackId: string, options: ContinueCommandOptions
     process.exit(1);
   }
 
+  const dbPath = getDatabasePath();
+
   // 2. Validate track exists
-  if (!trackExists(trackId)) {
+  if (!lib.trackExists(dbPath, trackId)) {
     console.error(`Error: Unknown track id: ${trackId}`);
     console.error('The specified track does not exist.');
     process.exit(1);
@@ -57,11 +59,11 @@ export function continueCommand(trackId: string, options: ContinueCommandOptions
     };
 
     // 5. Update track in database
-    updateTrack(trackId, updateParams);
+    lib.updateTrack(dbPath, trackId, updateParams);
 
     // 6. Add file associations if provided
     if (options.file && options.file.length > 0) {
-      addTrackFiles(trackId, options.file);
+      lib.addTrackFiles(dbPath, trackId, options.file);
     }
 
     // 7. Success message

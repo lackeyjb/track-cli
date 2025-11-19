@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { getDatabasePath } from '../../utils/paths.js';
 import { continueCommand } from '../continue.js';
 import { initCommand } from '../init.js';
 import { newCommand } from '../new.js';
-import { getTrack, getAllTrackFiles } from '../../storage/database.js';
+import * as lib from '../../lib/db.js';
 import { withTempDir } from '../../__tests__/helpers/test-fs.js';
 import { mockConsole, mockProcessExit } from '../../__tests__/helpers/mocks.js';
 
@@ -53,7 +54,7 @@ describe('continue command', () => {
           next: 'Updated next',
         });
 
-        const track = getTrack(trackId);
+        const track = lib.getTrack(getDatabasePath(), trackId);
 
         expect(track?.summary).toBe('Updated summary');
         expect(track?.next_prompt).toBe('Updated next');
@@ -87,7 +88,7 @@ describe('continue command', () => {
           status: 'done',
         });
 
-        const track = getTrack(trackId);
+        const track = lib.getTrack(getDatabasePath(), trackId);
 
         expect(track?.status).toBe('done');
       });
@@ -110,7 +111,7 @@ describe('continue command', () => {
         const trackId = extractTrackId(consoleMock.getLogs());
 
         // Verify initially planned
-        let track = getTrack(trackId);
+        let track = lib.getTrack(getDatabasePath(), trackId);
         expect(track?.status).toBe('planned');
 
         consoleMock.restore();
@@ -123,7 +124,7 @@ describe('continue command', () => {
           next: 'Keep going',
         });
 
-        track = getTrack(trackId);
+        track = lib.getTrack(getDatabasePath(), trackId);
 
         expect(track?.status).toBe('in_progress');
       });
@@ -144,7 +145,7 @@ describe('continue command', () => {
         });
 
         const trackId = extractTrackId(consoleMock.getLogs());
-        const originalTrack = getTrack(trackId);
+        const originalTrack = lib.getTrack(getDatabasePath(), trackId);
         const originalUpdatedAt = originalTrack?.updated_at;
 
         // Wait a tiny bit to ensure timestamp changes
@@ -160,7 +161,7 @@ describe('continue command', () => {
           next: 'Next',
         });
 
-        const updatedTrack = getTrack(trackId);
+        const updatedTrack = lib.getTrack(getDatabasePath(), trackId);
 
         expect(updatedTrack?.updated_at).not.toBe(originalUpdatedAt);
       });
@@ -193,7 +194,7 @@ describe('continue command', () => {
           file: ['file1.ts', 'file2.ts'],
         });
 
-        const fileMap = getAllTrackFiles();
+        const fileMap = lib.getAllTrackFiles(getDatabasePath());
         const files = fileMap.get(trackId);
 
         expect(files).toBeDefined();
@@ -231,7 +232,7 @@ describe('continue command', () => {
           file: ['file1.ts', 'file2.ts'], // file1.ts is duplicate
         });
 
-        const fileMap = getAllTrackFiles();
+        const fileMap = lib.getAllTrackFiles(getDatabasePath());
         const files = fileMap.get(trackId);
 
         expect(files).toHaveLength(2); // Should have file1.ts and file2.ts
@@ -304,7 +305,7 @@ describe('continue command', () => {
             status,
           });
 
-          const track = getTrack(trackId);
+          const track = lib.getTrack(getDatabasePath(), trackId);
           expect(track?.status).toBe(status);
         }
       });

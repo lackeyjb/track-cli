@@ -1,5 +1,5 @@
-import { projectExists } from '../utils/paths.js';
-import { getAllTracks, getAllTrackFiles } from '../storage/database.js';
+import { projectExists, getDatabasePath } from '../utils/paths.js';
+import * as lib from '../lib/db.js';
 import { buildTrackTree } from '../models/tree.js';
 import type { TrackWithDetails } from '../models/types.js';
 
@@ -25,11 +25,13 @@ export function statusCommand(options: StatusCommandOptions): void {
   }
 
   try {
+    const dbPath = getDatabasePath();
+
     // 2. Load all tracks from database
-    const tracks = getAllTracks();
+    const tracks = lib.getAllTracks(dbPath);
 
     // 3. Load all track-file associations
-    const fileMap = getAllTrackFiles();
+    const fileMap = lib.getAllTrackFiles(dbPath);
 
     // 4. Build tree structure with derived fields
     const tracksWithDetails = buildTrackTree(tracks, fileMap);

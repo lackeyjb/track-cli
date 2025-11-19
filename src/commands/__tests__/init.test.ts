@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { initCommand } from '../init.js';
-import { projectExists } from '../../utils/paths.js';
-import { getRootTrack } from '../../storage/database.js';
+import { projectExists, getDatabasePath } from '../../utils/paths.js';
+import * as lib from '../../lib/db.js';
 import { withTempDir } from '../../__tests__/helpers/test-fs.js';
 import { mockConsole, mockProcessExit } from '../../__tests__/helpers/mocks.js';
 import path from 'path';
@@ -43,7 +43,7 @@ describe('init command', () => {
       await withTempDir(() => {
         initCommand('My Project');
 
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         expect(root).toBeDefined();
         expect(root?.title).toBe('My Project');
@@ -58,7 +58,7 @@ describe('init command', () => {
 
         initCommand(); // No name provided
 
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         expect(root?.title).toBe(dirName);
       });
@@ -68,7 +68,7 @@ describe('init command', () => {
       await withTempDir(() => {
         initCommand('Test');
 
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         expect(root?.id).toBeDefined();
         expect(root?.id.length).toBe(8);
@@ -79,7 +79,7 @@ describe('init command', () => {
       await withTempDir(() => {
         initCommand('Test');
 
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         expect(root?.created_at).toBeDefined();
         expect(root?.updated_at).toBeDefined();
@@ -161,11 +161,11 @@ describe('init command', () => {
       await withTempDir(() => {
         // Initialize once
         initCommand('First Project');
-        const firstRoot = getRootTrack();
+        const firstRoot = lib.getRootTrack(getDatabasePath());
 
         // Initialize again with force
         initCommand('Second Project', true);
-        const secondRoot = getRootTrack();
+        const secondRoot = lib.getRootTrack(getDatabasePath());
 
         expect(secondRoot?.title).toBe('Second Project');
         expect(secondRoot?.id).not.toBe(firstRoot?.id); // Different project

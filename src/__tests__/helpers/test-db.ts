@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { initializeDatabase, getDatabase } from '../../storage/database.js';
+import * as lib from '../../lib/db.js';
 import { getDatabasePath } from '../../utils/paths.js';
 import fs from 'fs';
 import path from 'path';
@@ -16,7 +16,8 @@ export async function withTestDatabase<T>(fn: () => T | Promise<T>): Promise<T> 
 
   try {
     process.chdir(tempDir);
-    initializeDatabase();
+    const dbPath = getDatabasePath();
+    lib.initializeDatabase(dbPath);
     return await fn();
   } finally {
     process.chdir(originalCwd);
@@ -33,7 +34,10 @@ export async function withTestDatabase<T>(fn: () => T | Promise<T>): Promise<T> 
  * Use within withTestDatabase context.
  */
 export function getTestDb(): Database.Database {
-  return getDatabase();
+  const dbPath = getDatabasePath();
+  const db = new Database(dbPath);
+  db.pragma('foreign_keys = ON');
+  return db;
 }
 
 /**

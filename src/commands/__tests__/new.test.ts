@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { newCommand } from '../new.js';
 import { initCommand } from '../init.js';
-import { getTrack, getRootTrack, getAllTrackFiles } from '../../storage/database.js';
+import { getDatabasePath } from '../../utils/paths.js';
+import * as lib from '../../lib/db.js';
 import { withTempDir } from '../../__tests__/helpers/test-fs.js';
 import { mockConsole, mockProcessExit } from '../../__tests__/helpers/mocks.js';
 
@@ -23,7 +24,7 @@ describe('new command', () => {
     it('should create track with minimal options', async () => {
       await withTempDir(() => {
         initCommand('Test');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         // Reset mocks after init
         consoleMock.restore();
@@ -45,7 +46,7 @@ describe('new command', () => {
     it('should create track with all options', async () => {
       await withTempDir(() => {
         initCommand('Test');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -71,7 +72,7 @@ describe('new command', () => {
     it('should store track in database', async () => {
       await withTempDir(() => {
         initCommand('Test');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -91,7 +92,7 @@ describe('new command', () => {
 
         expect(trackId).toBeDefined();
 
-        const track = getTrack(trackId!);
+        const track = lib.getTrack(getDatabasePath(), trackId!);
 
         expect(track).toBeDefined();
         expect(track?.title).toBe('Test Track');
@@ -120,7 +121,7 @@ describe('new command', () => {
         const trackIdLog = logs.find((log) => log.includes('Track ID:'));
         const trackId = trackIdLog?.split('Track ID: ')[1];
 
-        const track = getTrack(trackId!);
+        const track = lib.getTrack(getDatabasePath(), trackId!);
         expect(track?.title).toBe('Whitespace Title');
       });
     });
@@ -144,7 +145,7 @@ describe('new command', () => {
         const trackIdLog = logs.find((log) => log.includes('Track ID:'));
         const trackId = trackIdLog?.split('Track ID: ')[1];
 
-        const fileMap = getAllTrackFiles();
+        const fileMap = lib.getAllTrackFiles(getDatabasePath());
         const files = fileMap.get(trackId!);
 
         expect(files).toBeDefined();
@@ -157,7 +158,7 @@ describe('new command', () => {
     it('should default to root as parent when --parent is omitted', async () => {
       await withTempDir(() => {
         initCommand('Test');
-        const root = getRootTrack();
+        const root = lib.getRootTrack(getDatabasePath());
 
         consoleMock.restore();
         exitMock.restore();
@@ -173,7 +174,7 @@ describe('new command', () => {
         const trackIdLog = logs.find((log) => log.includes('Track ID:'));
         const trackId = trackIdLog?.split('Track ID: ')[1];
 
-        const track = getTrack(trackId!);
+        const track = lib.getTrack(getDatabasePath(), trackId!);
         expect(track?.parent_id).toBe(root?.id);
         expect(track?.parent_id).not.toBeNull();
       });
@@ -197,7 +198,7 @@ describe('new command', () => {
         const trackIdLog = logs.find((log) => log.includes('Track ID:'));
         const trackId = trackIdLog?.split('Track ID: ')[1];
 
-        const track = getTrack(trackId!);
+        const track = lib.getTrack(getDatabasePath(), trackId!);
         expect(track?.status).toBe('planned');
       });
     });

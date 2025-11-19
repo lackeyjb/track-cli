@@ -1,9 +1,9 @@
 import { basename } from 'path';
 import { rmSync } from 'fs';
-import { projectExists, getTrackDir } from '../utils/paths.js';
+import { projectExists, getTrackDir, getDatabasePath } from '../utils/paths.js';
 import { generateId } from '../utils/id.js';
 import { getCurrentTimestamp } from '../utils/timestamp.js';
-import { initializeDatabase, createTrack } from '../storage/database.js';
+import * as lib from '../lib/db.js';
 import type { CreateTrackParams } from '../models/types.js';
 
 /**
@@ -35,8 +35,10 @@ export function initCommand(name?: string, force?: boolean): void {
   const projectName = name || basename(process.cwd());
 
   try {
+    const dbPath = getDatabasePath();
+
     // Initialize database and schema
-    initializeDatabase();
+    lib.initializeDatabase(dbPath);
 
     // Create root track (the project)
     const now = getCurrentTimestamp();
@@ -51,7 +53,7 @@ export function initCommand(name?: string, force?: boolean): void {
       updated_at: now,
     };
 
-    createTrack(rootTrack);
+    lib.createTrack(dbPath, rootTrack);
 
     // Success message
     console.log(`Initialized track project: ${projectName}`);

@@ -1,7 +1,10 @@
 import Database from 'better-sqlite3';
 import { mkdirSync } from 'fs';
-import { getDatabasePath, getTrackDir } from '../utils/paths.js';
-import type { CreateTrackParams, Track, UpdateTrackParams } from '../models/types.js';
+import { dirname } from 'path';
+import type { CreateTrackParams, Track, UpdateTrackParams, TrackWithDetails } from './types.js';
+
+// Re-export types for convenience
+export type { CreateTrackParams, Track, UpdateTrackParams, TrackWithDetails };
 
 /**
  * Schema for the tracks table.
@@ -54,36 +57,31 @@ CREATE INDEX idx_track_files_track ON track_files(track_id);
 `;
 
 /**
- * Get a database connection to the track database.
- * Opens the database at .track/track.db in the current directory.
- *
- * @returns SQLite database instance
- * @throws Error if database doesn't exist or can't be opened
+ * Helper function to execute a database operation with proper connection handling.
+ * Ensures foreign keys are enabled and the connection is properly closed.
  */
-export function getDatabase(): Database.Database {
-  const dbPath = getDatabasePath();
+function withDatabase<T>(dbPath: string, fn: (db: Database.Database) => T): T {
   const db = new Database(dbPath);
-
-  // Enable foreign keys (must be done per connection)
   db.pragma('foreign_keys = ON');
-
-  return db;
+  try {
+    return fn(db);
+  } finally {
+    db.close();
+  }
 }
 
 /**
- * Initialize the track database.
- * Creates the .track directory, initializes SQLite database, and creates schema.
+ * Initialize a new track database at the specified path.
+ * Creates the parent directory, initializes SQLite database, and creates schema.
  *
- * This should only be called by the init command.
- *
- * @throws Error if .track directory already exists or database creation fails
+ * @param dbPath - Absolute path to the database file
+ * @throws Error if database creation fails
  */
-export function initializeDatabase(): void {
-  const trackDir = getTrackDir();
-  const dbPath = getDatabasePath();
+export function initializeDatabase(dbPath: string): void {
+  const trackDir = dirname(dbPath);
 
-  // Create .track directory
-  mkdirSync(trackDir, { recursive: false });
+  // Create parent directory
+  mkdirSync(trackDir, { recursive: true });
 
   // Create and configure database
   const db = new Database(dbPath);
@@ -108,13 +106,12 @@ export function initializeDatabase(): void {
 /**
  * Create a new track in the database.
  *
+ * @param dbPath - Path to the database file
  * @param params - Track creation parameters
  * @returns The created track
  */
-export function createTrack(params: CreateTrackParams): Track {
-  const db = getDatabase();
-
-  try {
+export function createTrack(dbPath: string, params: CreateTrackParams): Track {
+  return withDatabase(dbPath, (db) => {
     const stmt = db.prepare(`
       INSERT INTO tracks (
         id, title, parent_id, summary, next_prompt, status, created_at, updated_at
@@ -126,56 +123,47 @@ export function createTrack(params: CreateTrackParams): Track {
     stmt.run(params);
 
     return params;
-  } finally {
-    db.close();
-  }
+  });
 }
 
 /**
  * Check if a track exists by ID.
  *
+ * @param dbPath - Path to the database file
  * @param trackId - Track ID to check
  * @returns true if track exists, false otherwise
  */
-export function trackExists(trackId: string): boolean {
-  const db = getDatabase();
-
-  try {
+export function trackExists(dbPath: string, trackId: string): boolean {
+  return withDatabase(dbPath, (db) => {
     const stmt = db.prepare('SELECT 1 FROM tracks WHERE id = ? LIMIT 1');
     const result = stmt.get(trackId);
     return result !== undefined;
-  } finally {
-    db.close();
-  }
+  });
 }
 
 /**
  * Get a track by ID.
  *
+ * @param dbPath - Path to the database file
  * @param trackId - Track ID to retrieve
  * @returns Track if found, undefined otherwise
  */
-export function getTrack(trackId: string): Track | undefined {
-  const db = getDatabase();
-
-  try {
+export function getTrack(dbPath: string, trackId: string): Track | undefined {
+  return withDatabase(dbPath, (db) => {
     const stmt = db.prepare('SELECT * FROM tracks WHERE id = ?');
     return stmt.get(trackId) as Track | undefined;
-  } finally {
-    db.close();
-  }
+  });
 }
 
 /**
  * Update an existing track's mutable fields.
  *
+ * @param dbPath - Path to the database file
  * @param trackId - Track ID to update
  * @param params - Track update parameters
  */
-export function updateTrack(trackId: string, params: UpdateTrackParams): void {
-  const db = getDatabase();
-
-  try {
+export function updateTrack(dbPath: string, trackId: string, params: UpdateTrackParams): void {
+  withDatabase(dbPath, (db) => {
     const stmt = db.prepare(`
       UPDATE tracks
       SET summary = @summary,
@@ -189,43 +177,37 @@ export function updateTrack(trackId: string, params: UpdateTrackParams): void {
       id: trackId,
       ...params,
     });
-  } finally {
-    db.close();
-  }
+  });
 }
 
 /**
  * Get the root track (project track).
  * The root track has parent_id = NULL.
  *
+ * @param dbPath - Path to the database file
  * @returns Root track if found, undefined otherwise
  */
-export function getRootTrack(): Track | undefined {
-  const db = getDatabase();
-
-  try {
+export function getRootTrack(dbPath: string): Track | undefined {
+  return withDatabase(dbPath, (db) => {
     const stmt = db.prepare('SELECT * FROM tracks WHERE parent_id IS NULL LIMIT 1');
     return stmt.get() as Track | undefined;
-  } finally {
-    db.close();
-  }
+  });
 }
 
 /**
  * Add file associations to a track.
  * Idempotent - duplicates are ignored via PRIMARY KEY constraint.
  *
+ * @param dbPath - Path to the database file
  * @param trackId - Track ID to associate files with
  * @param filePaths - Array of file paths to associate
  */
-export function addTrackFiles(trackId: string, filePaths: string[]): void {
+export function addTrackFiles(dbPath: string, trackId: string, filePaths: string[]): void {
   if (filePaths.length === 0) {
     return;
   }
 
-  const db = getDatabase();
-
-  try {
+  withDatabase(dbPath, (db) => {
     // Use a transaction for atomicity and performance
     const insertFile = db.prepare(`
       INSERT OR IGNORE INTO track_files (track_id, file_path)
@@ -239,36 +221,30 @@ export function addTrackFiles(trackId: string, filePaths: string[]): void {
     });
 
     insertMany(filePaths);
-  } finally {
-    db.close();
-  }
+  });
 }
 
 /**
  * Get all tracks from the database.
  *
+ * @param dbPath - Path to the database file
  * @returns Array of all tracks
  */
-export function getAllTracks(): Track[] {
-  const db = getDatabase();
-
-  try {
+export function getAllTracks(dbPath: string): Track[] {
+  return withDatabase(dbPath, (db) => {
     const stmt = db.prepare('SELECT * FROM tracks');
     return stmt.all() as Track[];
-  } finally {
-    db.close();
-  }
+  });
 }
 
 /**
  * Get all track-file associations from the database.
  *
+ * @param dbPath - Path to the database file
  * @returns Map of track IDs to arrays of file paths
  */
-export function getAllTrackFiles(): Map<string, string[]> {
-  const db = getDatabase();
-
-  try {
+export function getAllTrackFiles(dbPath: string): Map<string, string[]> {
+  return withDatabase(dbPath, (db) => {
     const stmt = db.prepare('SELECT track_id, file_path FROM track_files');
     const rows = stmt.all() as Array<{ track_id: string; file_path: string }>;
 
@@ -281,7 +257,5 @@ export function getAllTrackFiles(): Map<string, string[]> {
     }
 
     return fileMap;
-  } finally {
-    db.close();
-  }
+  });
 }
