@@ -245,9 +245,11 @@ function route(req: http.IncomingMessage, res: http.ServerResponse): void {
 }
 
 // Helper for tests: simulate a request without opening a real socket.
-export function handleRequest(
-  url: string,
-): { status: number; headers: Record<string, unknown>; body: string } {
+export function handleRequest(url: string): {
+  status: number;
+  headers: Record<string, unknown>;
+  body: string;
+} {
   const req = { url } as http.IncomingMessage;
   const res: {
     status?: number;

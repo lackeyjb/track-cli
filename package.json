@@ -16,7 +16,7 @@
     "dev": "tsc --watch",
     "mcp:start": "node dist/mcp/server.js",
     "mcp:dev": "npm run dev",
-    "mcp:sync": "node scripts/mcp-sync.js && npm run build",
+    "mcp:sync": "npm run build && node scripts/mcp-sync.js && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
