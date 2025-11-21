@@ -86,7 +86,7 @@ track status
 
 ```bash
 # 1. Start work on task
-track continue ghi11111 \
+track update ghi11111 \
   --status in_progress \
   --summary "Starting work on login form component" \
   --next "Create component file and basic form structure"
@@ -95,7 +95,7 @@ track continue ghi11111 \
 # Create src/components/LoginForm.tsx
 
 # 3. Update with progress
-track continue ghi11111 \
+track update ghi11111 \
   --summary "Form component created. Email and password fields added. Basic structure in place." \
   --next "Add Formik integration for form state and validation" \
   --file src/components/LoginForm.tsx
@@ -104,7 +104,7 @@ track continue ghi11111 \
 # Add Formik, validation
 
 # 5. Update again
-track continue ghi11111 \
+track update ghi11111 \
   --summary "Form complete with Formik. Email format validation and password length validation implemented. Error messages display below fields." \
   --next "Wire up form submission to call authAPI.login(). Handle success (redirect) and error (show message) cases." \
   --file src/hooks/useFormValidation.ts
@@ -113,7 +113,7 @@ track continue ghi11111 \
 # Add API integration
 
 # 7. Mark as done
-track continue ghi11111 \
+track update ghi11111 \
   --summary "Login form complete. Form fields, validation, API integration, error handling, loading states all implemented. Unit tests added and passing." \
   --next "None - ready for code review" \
   --status done \
@@ -132,7 +132,7 @@ track continue ghi11111 \
 track status --json | jq '.tracks[] | select(.status == "in_progress")'
 
 # 2. For each in-progress track, update with comprehensive summary
-track continue <track-id> \
+track update <track-id> \
   --summary "COMPLETE summary: what exists, what's implemented, what works, what's tested, what's left, key decisions made, any blockers or challenges" \
   --next "SPECIFIC next step: exact file paths, line numbers if relevant, clear first action, context needed" \
   --status in_progress
@@ -141,7 +141,7 @@ track continue <track-id> \
 track status --json
 
 # Example comprehensive update:
-track continue abc12345 \
+track update abc12345 \
   --summary "Login form component fully implemented (src/components/LoginForm.tsx). Email and password fields with Formik state management. Validation working (email format check, password min 8 chars). Form submits to authAPI.login() with loading state (disables button, shows spinner). Success case redirects to /dashboard using useNavigate(). Error case displays error.message in FormError component below submit button. Unit tests in tests/LoginForm.test.tsx cover happy path and 3 error cases - all passing. Integration tested manually - working correctly. NOT YET DONE: accessibility audit (ARIA labels), mobile responsive layout, 'remember me' checkbox." \
   --next "Next session: 1) Add ARIA labels for screen readers (see WCAG guidelines). 2) Make form responsive for mobile (use CSS Grid, test on viewport < 768px). 3) Add 'remember me' checkbox that stores preference in localStorage. Reference ProfileForm.tsx lines 89-112 for similar checkbox pattern."
 ```
@@ -156,12 +156,12 @@ track continue abc12345 \
 
 ```bash
 # Agent 1: Claims authentication feature
-track continue auth-feature-id \
+track update auth-feature-id \
   --summary "Agent 1 working on authentication" \
   --status in_progress
 
 # Agent 2: Claims dashboard feature (same time, different track)
-track continue dash-feature-id \
+track update dash-feature-id \
   --summary "Agent 2 working on dashboard" \
   --status in_progress
 
@@ -172,7 +172,7 @@ track continue dash-feature-id \
 
 ```bash
 # Agent 1: Completes API work
-track continue abc12345 \
+track update abc12345 \
   --summary "API client complete. All endpoints working. Tests passing." \
   --next "HANDOFF: Wire up UI components to use this API. See API usage examples in tests/api.test.ts. Success/error handling patterns in src/api/README.md" \
   --status done
@@ -186,7 +186,7 @@ track status --json | jq '.tracks[] | select(.id == "abc12345")'
 
 ```bash
 # Session 1 - Agent A
-track continue abc12345 \
+track update abc12345 \
   --summary "Started payment integration. Stripe SDK configured. Test credentials working. Created PaymentForm.tsx skeleton." \
   --next "Next: Add payment method selection (card/bank). Implement form validation for card number/CVV/expiry. Wire up to Stripe.createToken(). See Stripe docs: https://stripe.com/docs/..." \
   --status in_progress
@@ -196,7 +196,7 @@ track status --json | jq '.tracks[] | select(.id == "abc12345")'
 # Reads Agent A's summary and next steps
 # Continues exactly where Agent A left off
 
-track continue abc12345 \
+track update abc12345 \
   --summary "Payment form complete. Card/bank selection working. Stripe.createToken() integration done. Form validation complete (Luhn algorithm for card, expiry date validation, CVV length). Token creation tested with Stripe test cards - working correctly." \
   --next "Next: Handle token creation success (save payment method to backend API) and errors (display user-friendly message). Add loading states. See backend API endpoint: POST /api/payment-methods" \
   --status in_progress
@@ -210,7 +210,7 @@ track continue abc12345 \
 
 ```bash
 # 1. Discover blocker while working
-track continue abc12345 \
+track update abc12345 \
   --summary "Payment integration started but blocked - need Stripe API keys from ops team" \
   --next "Once credentials received: configure in .env, test connection with Stripe.test(), then implement payment flow" \
   --status blocked
@@ -222,7 +222,7 @@ track new "Obtain Stripe API Keys" \
   --status in_progress
 
 # 3. Later, when unblocked
-track continue abc12345 \
+track update abc12345 \
   --summary "Received API keys. Stripe SDK configured with production credentials. Test connection successful." \
   --next "Implement payment flow: create checkout session, handle webhooks, update order status" \
   --status in_progress
@@ -236,7 +236,7 @@ track continue abc12345 \
 
 ```bash
 # Original approach
-track continue abc12345 \
+track update abc12345 \
   --summary "Started with REST API approach but discovered GraphQL requirement in architecture meeting" \
   --next "See new track def67890 for GraphQL implementation. This approach abandoned." \
   --status superseded
@@ -256,37 +256,37 @@ track new "GraphQL API Implementation" \
 
 ```bash
 # Milestone 1: Component skeleton
-track continue abc12345 \
+track update abc12345 \
   --summary "Component created. Props interface defined. Basic render working. No logic yet." \
   --next "Implement state management with useState for form fields" \
   --status in_progress
 
 # Milestone 2: State management
-track continue abc12345 \
+track update abc12345 \
   --summary "Component with state management. Form fields controlled with useState. Input changes updating state correctly." \
   --next "Add validation logic: email format, password length, required fields" \
   --status in_progress
 
 # Milestone 3: Validation
-track continue abc12345 \
+track update abc12345 \
   --summary "Validation complete. Email format check, password min 8 chars, required field checks. Error messages display correctly." \
   --next "Wire up form submission to API. Handle loading, success, error states" \
   --status in_progress
 
 # Milestone 4: API integration
-track continue abc12345 \
+track update abc12345 \
   --summary "API integration done. Form submits to authAPI.login(). Loading state shows spinner. Success redirects to /dashboard. Errors display below form." \
   --next "Add unit tests for validation and submission logic" \
   --status in_progress
 
 # Milestone 5: Testing
-track continue abc12345 \
+track update abc12345 \
   --summary "Unit tests complete. Tests cover validation rules, successful submission, error handling, loading states. All tests passing (95% coverage)." \
   --next "Manual testing, then mark as done" \
   --status in_progress
 
 # Done!
-track continue abc12345 \
+track update abc12345 \
   --summary "Feature complete and tested. Unit tests passing. Manual testing complete. Ready for code review." \
   --next "None - submit PR for review" \
   --status done
@@ -325,12 +325,12 @@ track status --json | jq '.tracks[] | select(.kind == "task" and .status != "don
 
 ```bash
 # Bad summary
-track continue abc12345 \
+track update abc12345 \
   --summary "Made some progress" \
   --next "Keep working"
 
 # Good summary (comprehensive)
-track continue abc12345 \
+track update abc12345 \
   --summary "Login form component (src/components/LoginForm.tsx) has email/password inputs with Formik state management. Validation implemented: email format (regex /^[^@]+@[^@]+$/), password min 8 chars. authAPI.login() integration complete in handleSubmit() function (line 67). Success case redirects to /dashboard using useNavigate() hook. Error case shows error.message in FormError component (line 89). Loading state managed with isSubmitting from Formik. Unit tests (tests/LoginForm.test.tsx) cover: happy path login, invalid email, invalid password, API error response - all passing. Manual testing done on Chrome and Firefox - working. NOT YET DONE: Safari testing, accessibility ARIA labels, mobile responsive layout." \
   --next "Add ARIA labels: aria-label='Email address' on email input (line 34), aria-label='Password' on password input (line 45), aria-live='polite' on error message div (line 89). Test with screen reader (VoiceOver). Then make responsive: use CSS Grid, test on iPhone 12 viewport (390x844). Reference ProfileForm.tsx lines 23-67 for similar mobile-first pattern."
 ```

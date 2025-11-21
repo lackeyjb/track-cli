@@ -69,7 +69,7 @@ My Web App (abc12345) [planned]
 ### Update a Track
 
 ```bash
-track continue def67890 \
+track update def67890 \
   --summary "Login form component created with email/password fields" \
   --next "Add form validation" \
   --status in_progress
@@ -120,8 +120,8 @@ ghi11111  ← A task
 
 **Using IDs:**
 ```bash
-track continue abc12345 ...    # Full ID
-track continue abc1 ...        # Prefix works if unique
+track update abc12345 ...    # Full ID
+track update abc1 ...        # Prefix works if unique
 ```
 
 ### Current State Model
@@ -188,19 +188,19 @@ track new "Search Component" \
 
 ```bash
 # Starting work
-track continue <task-id> \
+track update <task-id> \
   --summary "Starting work on product card" \
   --next "Create basic component structure" \
   --status in_progress
 
 # Making progress
-track continue <task-id> \
+track update <task-id> \
   --summary "Component structure done, added props interface" \
   --next "Implement image loading with fallback" \
   --status in_progress
 
 # Finishing
-track continue <task-id> \
+track update <task-id> \
   --summary "Component complete with image, title, price. Responsive design. Tests added." \
   --next "None - component is production ready" \
   --status done
@@ -221,7 +221,7 @@ track status --json | jq '.tracks[] | select(.id == "<task-id>")'
 # Do the work...
 
 # Update before finishing session
-track continue <task-id> \
+track update <task-id> \
   --summary "Updated summary with today's work" \
   --next "What to do tomorrow" \
   --status in_progress
@@ -338,7 +338,7 @@ track new "API Client" \
 ### Adding Files During Updates
 
 ```bash
-track continue <task-id> \
+track update <task-id> \
   --summary "Added error handling and retry logic" \
   --next "Add request timeout configuration" \
   --file src/api/errors.ts \
@@ -430,7 +430,7 @@ planned/in_progress → superseded
 When a track is blocked, explain why in the summary:
 
 ```bash
-track continue <task-id> \
+track update <task-id> \
   --summary "Payment integration blocked - waiting for API credentials from ops team" \
   --next "Once credentials received, configure Stripe client" \
   --status blocked
@@ -450,7 +450,7 @@ track new "Get Stripe API Credentials" \
 Mark tracks that were replaced:
 
 ```bash
-track continue <old-approach-id> \
+track update <old-approach-id> \
   --summary "REST API approach superseded by GraphQL decision" \
   --next "See new GraphQL implementation track: <new-track-id>" \
   --status superseded
@@ -557,7 +557,7 @@ track status --json | jq '.tracks[] | select(.status == "blocked") | {id, title,
 **Minimal updates:**
 ```bash
 # Quick update with just progress
-track continue <task-id> \
+track update <task-id> \
   --summary "Form validation complete, starting API integration" \
   --next "Call login endpoint and handle response"
 ```
@@ -598,13 +598,13 @@ track status  # All default to 'planned'
 
 ```bash
 # Before creating PR, update all related tracks
-track continue <feature-id> \
+track update <feature-id> \
   --summary "Feature complete and tested" \
   --next "Code review, then merge" \
   --status done
 
 # After PR merged, mark as done
-track continue <feature-id> \
+track update <feature-id> \
   --summary "PR #42 merged to main" \
   --status done
 ```
@@ -613,13 +613,13 @@ track continue <feature-id> \
 
 ```bash
 # At start of session
-track continue <task-id> \
+track update <task-id> \
   --summary "Previous summary..." \
   --next "Today: Implement error handling, add tests" \
   --status in_progress
 
 # At end of session
-track continue <task-id> \
+track update <task-id> \
   --summary "Error handling added with custom error classes. Tests added for happy path and 3 error cases. Need to add edge case tests." \
   --next "Add tests for network timeout and rate limiting. Then refactor error messages for better UX."
 ```
@@ -655,7 +655,7 @@ Add to your `.bashrc` or `.zshrc`:
 alias t='track'
 alias ts='track status'
 alias tn='track new'
-alias tc='track continue'
+alias tu='track update'
 alias tj='track status --json | jq'
 ```
 
@@ -709,7 +709,7 @@ track status --json | jq '.tracks[] | select(.status == "in_progress") | {title,
 ```bash
 # Mark all planned tasks as in_progress (manual per-track)
 for id in $(track status --json | jq -r '.tracks[] | select(.status == "planned") | .id'); do
-  track continue $id --status in_progress --summary "Starting work" --next "TBD"
+  track update $id --status in_progress --summary "Starting work" --next "TBD"
 done
 ```
 

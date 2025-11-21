@@ -6,7 +6,7 @@ Quick reference for all Track CLI commands.
 
 - [`track init`](#track-init) - Initialize project
 - [`track new`](#track-new) - Create track
-- [`track continue`](#track-continue) - Update track
+- [`track update`](#track-update) - Update track
 - [`track status`](#track-status) - Display status
 
 ## Global Options
@@ -204,21 +204,21 @@ track new "Implement User Profile Page" \
 ### Notes
 
 - All new tracks default to `planned` status
-- Use `track continue` to change status later
+- Use `track update` to change status later
 - Omitting `--parent` defaults to root (not creating second root)
 - Only one root track per project (enforced)
 - Track kind (super/feature/task) is derived, not specified
 
 ---
 
-## `track continue`
+## `track update`
 
 Update an existing track's state.
 
 ### Synopsis
 
 ```bash
-track continue <track-id> [options]
+track update <track-id> [options]
 ```
 
 ### Arguments
@@ -255,26 +255,26 @@ track continue <track-id> [options]
 
 **Update status only:**
 ```bash
-track continue abc12345 --status in_progress
+track update abc12345 --status in_progress
 ```
 
 **Update summary and next steps:**
 ```bash
-track continue abc12345 \
+track update abc12345 \
   --summary "Login form component created with email/password fields and validation" \
   --next "Wire up authentication API call and handle errors"
 ```
 
 **Add file associations:**
 ```bash
-track continue abc12345 \
+track update abc12345 \
   --file src/hooks/useAuth.ts \
   --file src/api/auth.ts
 ```
 
 **Complete update:**
 ```bash
-track continue abc12345 \
+track update abc12345 \
   --summary "API integration complete. Auth endpoints working. Token refresh implemented. Error handling added." \
   --next "Add unit tests for authentication flow. Then integration tests." \
   --status in_progress \
@@ -283,7 +283,7 @@ track continue abc12345 \
 
 **Mark as done:**
 ```bash
-track continue abc12345 \
+track update abc12345 \
   --summary "Feature complete and tested. PR #42 merged to main." \
   --next "None - moving to next feature" \
   --status done
@@ -291,7 +291,7 @@ track continue abc12345 \
 
 **Mark as blocked:**
 ```bash
-track continue abc12345 \
+track update abc12345 \
   --summary "Implementation blocked - waiting for API credentials from ops team" \
   --next "Once creds received, configure Stripe SDK and test connection" \
   --status blocked
@@ -577,10 +577,10 @@ You can use unique prefixes instead of full IDs:
 
 ```bash
 # Full ID
-track continue abc12345 ...
+track update abc12345 ...
 
 # Prefix (if unique)
-track continue abc ...
+track update abc ...
 ```
 
 **Note:** Currently v1 requires full IDs. Prefix matching planned for v2.
@@ -593,7 +593,7 @@ Speed up common commands with shell aliases:
 alias t='track'
 alias ts='track status'
 alias tn='track new'
-alias tc='track continue'
+alias tu='track update'
 ```
 
 ### Multi-line Commands

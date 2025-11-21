@@ -95,7 +95,7 @@ track new "API Integration" \
 
 ---
 
-## `track continue <track-id> [options]`
+## `track update <track-id> [options]`
 
 **Purpose:** Update existing track's state.
 
@@ -132,27 +132,27 @@ track new "API Integration" \
 **Examples:**
 ```bash
 # Update status only
-track continue abc12345 --status in_progress
+track update abc12345 --status in_progress
 
 # Save progress
-track continue abc12345 \
+track update abc12345 \
   --summary "Login form complete. Email/password fields with validation. API integration done. Error handling implemented." \
   --next "Add loading states during API call. Then implement 'remember me' checkbox."
 
 # Mark as done
-track continue abc12345 \
+track update abc12345 \
   --summary "Feature complete. All tests passing. PR #42 merged." \
   --next "None - feature complete" \
   --status done
 
 # Mark as blocked
-track continue abc12345 \
+track update abc12345 \
   --summary "Blocked - waiting for API credentials from ops (ticket #789)" \
   --next "Once creds received: configure SDK, test connection" \
   --status blocked
 
 # Add files
-track continue abc12345 \
+track update abc12345 \
   --file src/hooks/useAuth.ts \
   --file tests/auth.test.ts
 ```
@@ -300,7 +300,7 @@ type Kind = 'super' | 'feature' | 'task'
 **Timestamps:**
 - Format: ISO 8601 UTC
 - Example: `2025-01-15T14:30:00.000Z`
-- Auto-updated on `track continue`
+- Auto-updated on `track update`
 
 **File Associations:**
 - No validation (files don't need to exist)

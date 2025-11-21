@@ -229,7 +229,7 @@
             "track_id": "abc12345",
             "status": "in_progress"
           },
-          "command": "track continue abc12345 --status in_progress"
+          "command": "track update abc12345 --status in_progress"
         },
         {
           "description": "Save progress with summary and next steps",
@@ -238,7 +238,7 @@
             "summary": "Login form component created with email/password fields and validation. API integration in progress.",
             "next_prompt": "Wire up authentication API call and handle error cases. Then add loading states."
           },
-          "command": "track continue abc12345 --summary \"Login form component created with email/password fields and validation. API integration in progress.\" --next \"Wire up authentication API call and handle error cases. Then add loading states.\""
+          "command": "track update abc12345 --summary \"Login form component created with email/password fields and validation. API integration in progress.\" --next \"Wire up authentication API call and handle error cases. Then add loading states.\""
         },
         {
           "description": "Mark as done",
@@ -248,7 +248,7 @@
             "next_prompt": "None - moving to next feature",
             "status": "done"
           },
-          "command": "track continue abc12345 --summary \"Feature complete and tested. All acceptance criteria met. PR #42 merged to main.\" --next \"None - moving to next feature\" --status done"
+          "command": "track update abc12345 --summary \"Feature complete and tested. All acceptance criteria met. PR #42 merged to main.\" --next \"None - moving to next feature\" --status done"
         },
         {
           "description": "Mark as blocked with context",
@@ -259,7 +259,7 @@
             "status": "blocked",
             "files": ["src/config/stripe.ts"]
           },
-          "command": "track continue abc12345 --summary \"Implementation blocked - waiting for API credentials from ops team. Design and component structure ready.\" --next \"Once credentials received, configure Stripe SDK and test connection\" --status blocked --file src/config/stripe.ts"
+          "command": "track update abc12345 --summary \"Implementation blocked - waiting for API credentials from ops team. Design and component structure ready.\" --next \"Once credentials received, configure Stripe SDK and test connection\" --status blocked --file src/config/stripe.ts"
         }
       ]
     },

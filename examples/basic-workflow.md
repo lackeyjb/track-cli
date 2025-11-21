@@ -93,7 +93,7 @@ track new "TodoList UI Component" \
 ### 6. Start Working on the UI Component
 
 ```bash
-track continue i9j0k1l2 \
+track update i9j0k1l2 \
   --summary "Starting work on TodoList component" \
   --next "Create component structure with task list and input" \
   --status in_progress
@@ -125,7 +125,7 @@ The tree shows your current work: `TodoList UI Component` is in progress.
 ### 8. Update Progress: Component Structure Done
 
 ```bash
-track continue i9j0k1l2 \
+track update i9j0k1l2 \
   --summary "Created TodoList component with basic structure. Renders task list and has input form. Using map() for tasks. Input has onChange handler. No actual functionality yet - just UI skeleton." \
   --next "Add props interface: tasks array and onAddTask callback. Wire up input to call onAddTask on submit." \
   --status in_progress
@@ -141,7 +141,7 @@ track continue i9j0k1l2 \
 ### 9. Complete the UI Component
 
 ```bash
-track continue i9j0k1l2 \
+track update i9j0k1l2 \
   --summary "TodoList component complete. Props: tasks (Task[]), onAddTask (fn), onToggle (fn), onDelete (fn). Renders task list with checkboxes and delete buttons. Input form with controlled component pattern. Form submit calls onAddTask. All interactions working. Responsive CSS added." \
   --next "None - component complete and ready for integration" \
   --status done \
@@ -194,7 +194,7 @@ First task is done, second task is planned.
 ### 12. Work on State Management
 
 ```bash
-track continue m3n4o5p6 \
+track update m3n4o5p6 \
   --summary "Created useTodos hook with useState<Task[]>. Implemented handlers: addTask (generates ID, appends), toggleTask (finds by ID, flips completed), deleteTask (filters out by ID). All handlers working correctly." \
   --next "None - hook complete" \
   --status done
@@ -227,7 +227,7 @@ track new "Add LocalStorage Persistence" \
 ### 14. Work on Persistence
 
 ```bash
-track continue q7r8s9t0 \
+track update q7r8s9t0 \
   --status in_progress \
   --summary "Working on localStorage integration" \
   --next "Add useEffect to save tasks on change, load on mount" \
@@ -244,7 +244,7 @@ track continue q7r8s9t0 \
 ### 15. Complete Persistence
 
 ```bash
-track continue q7r8s9t0 \
+track update q7r8s9t0 \
   --summary "Added localStorage persistence to useTodos hook. useEffect saves tasks to 'todos' key on any change. Initial state loads from localStorage with fallback to empty array. Tested: tasks persist across page refresh. Works correctly." \
   --next "None - persistence complete" \
   --status done
@@ -262,7 +262,7 @@ track continue q7r8s9t0 \
 Now that all tasks are done, mark the feature as complete:
 
 ```bash
-track continue e5f6g7h8 \
+track update e5f6g7h8 \
   --summary "Task management feature complete. UI component (TodoList.tsx), state management (useTodos hook), and localStorage persistence all implemented and tested. Users can add, complete, and delete tasks. Data persists across sessions." \
   --next "None - feature ready for testing and code review" \
   --status done

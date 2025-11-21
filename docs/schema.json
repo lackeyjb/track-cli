@@ -14,7 +14,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique 8-character track identifier (nanoid). Use this ID for track continue and as --parent for track new.",
+            "description": "Unique 8-character track identifier (nanoid). Use this ID for track update and as --parent for track new.",
             "pattern": "^[A-Za-z0-9_-]{8}$",
             "examples": ["abc12345", "def67890", "xyz99999"]
           },
@@ -93,7 +93,7 @@
           "updated_at": {
             "type": "string",
             "format": "date-time",
-            "description": "ISO 8601 UTC timestamp of when the track was last updated (track continue or initial creation)",
+            "description": "ISO 8601 UTC timestamp of when the track was last updated (track update or initial creation)",
             "examples": ["2025-01-15T14:45:30.000Z"]
           }
         },

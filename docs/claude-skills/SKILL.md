@@ -62,7 +62,7 @@ track new "Task Name" \
 Regularly update tracks as work progresses:
 
 ```bash
-track continue <track-id> \
+track update <track-id> \
   --summary "Comprehensive summary of what was accomplished. Include key decisions, what works, what's tested, blockers encountered." \
   --next "Clear, specific next step with file paths and line numbers if relevant" \
   --status in_progress \
@@ -78,7 +78,7 @@ Before user ends session, update all in-progress tracks:
 track status --json | jq '.tracks[] | select(.status == "in_progress")'
 
 # Update each one
-track continue <track-id> \
+track update <track-id> \
   --summary "COMPLETE summary - what exists, what works, what's left" \
   --next "SPECIFIC next step for resuming - include file paths, context" \
   --status in_progress
@@ -90,7 +90,7 @@ track continue <track-id> \
 |---------|-------|-----------|
 | `track init` | Initialize project (first time only) | `--force` to overwrite |
 | `track new "<title>"` | Create track | `--parent <id>` `--summary <text>` `--next <text>` `--file <path>` |
-| `track continue <id>` | Update track | `--summary <text>` `--next <text>` `--status <status>` `--file <path>` |
+| `track update <id>` | Update track | `--summary <text>` `--next <text>` `--status <status>` `--file <path>` |
 | `track status` | View all tracks | `--json` for parsing |
 
 ## Status Values
@@ -150,7 +150,7 @@ track status --json
 # ... make changes to files ...
 
 # Update progress
-track continue abc12345 \
+track update abc12345 \
   --summary "Form validation complete. Added email format check and password length validation. All validation errors display below respective fields." \
   --next "Wire up form submission to call authAPI.login(). Handle success (redirect /dashboard) and error (show message) cases." \
   --file src/components/LoginForm.tsx \

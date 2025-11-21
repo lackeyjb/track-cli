@@ -80,7 +80,7 @@ track new "Login Form Component" \
 **Step 5: Start working on login form**
 
 ```bash
-track continue j3k4l5m6 \
+track update j3k4l5m6 \
   --status in_progress \
   --summary "Starting login form component" \
   --next "Create component skeleton with email and password inputs"
@@ -93,7 +93,7 @@ track continue j3k4l5m6 \
 **Step 7: Update progress before ending session**
 
 ```bash
-track continue j3k4l5m6 \
+track update j3k4l5m6 \
   --summary "Created LoginForm component (src/components/LoginForm.tsx) with Formik integration. Fields: email (type=email, required), password (type=password, required, min 8 chars). Validation schema using Yup: email format check, password min length. Form renders correctly. Submit handler is placeholder onSubmit prop - not wired to API yet. Styling with Tailwind classes - responsive layout. No tests yet." \
   --next "NEXT SESSION: Wire up submit handler to authentication API. Create API client in src/api/auth.ts with login(email, password) method. On success: store auth token in localStorage, redirect to /dashboard. On error: display error message below form using <FormError> component (create if needed). See similar pattern in ProfileForm.tsx lines 89-156 for reference." \
   --status in_progress \
@@ -171,7 +171,7 @@ The `next_prompt` tells Agent B exactly what to do:
 **Step 6: Update progress mid-session**
 
 ```bash
-track continue j3k4l5m6 \
+track update j3k4l5m6 \
   --summary "LoginForm component exists with Formik validation (previous work). Created auth API client (src/api/auth.ts) with login() method using axios. Method posts to /api/auth/login with email/password, returns {token, user}. Wired up LoginForm submit handler to call authAPI.login(). Success case: stores token in localStorage key 'authToken', redirects to /dashboard using useNavigate(). Error case: displays error.message in FormError component below submit button. Loading state: disables submit button, shows spinner during API call. Pattern matches ProfileForm.tsx reference. NOT YET DONE: error handling for network failures, token refresh logic, logout functionality." \
   --next "Add comprehensive error handling: 1) Network errors (show 'Connection failed' message), 2) 401 errors (show 'Invalid credentials'), 3) 500 errors (show 'Server error'). Then add tests: unit tests for form validation, integration tests for API calls with mock server. Finally implement logout: create logout() method in auth API, add logout button in navbar, clear localStorage on logout." \
   --file src/api/auth.ts \
@@ -201,7 +201,7 @@ track new "Logout Functionality" \
 **Step 8: Complete login form task**
 
 ```bash
-track continue j3k4l5m6 \
+track update j3k4l5m6 \
   --summary "Login form component complete. Formik validation working. API integration done (src/api/auth.ts). Submit handler calls API, stores token, redirects. Error handling for network, 401, 500 errors all working with appropriate messages. Loading states implemented. Unit tests added (tests/LoginForm.test.tsx) covering validation, submit success, submit error, loading states. Integration tests with mock API server. All tests passing. Component production-ready." \
   --next "None - login form complete and tested" \
   --status done
@@ -210,7 +210,7 @@ track continue j3k4l5m6 \
 **Step 9: Work on logout task**
 
 ```bash
-track continue n7o8p9q0 \
+track update n7o8p9q0 \
   --status in_progress \
   --summary "Implementing logout functionality" \
   --next "Create logout API method and wire up button"
@@ -221,7 +221,7 @@ track continue n7o8p9q0 \
 **Step 10: End session with comprehensive update**
 
 ```bash
-track continue n7o8p9q0 \
+track update n7o8p9q0 \
   --summary "Logout functionality complete. Added authAPI.logout() method in src/api/auth.ts (posts to /api/auth/logout, clears server session). Added logout button to Navbar component (src/components/Navbar.tsx). On click: calls logout(), removes authToken from localStorage, redirects to /login using useNavigate(). Tested manually: logout works correctly, user is logged out on both client and server. No tests yet." \
   --next "Add unit tests for logout flow. Test: 1) logout API call, 2) localStorage clearing, 3) redirect to /login. Then test edge case: logout when already logged out (should gracefully handle)." \
   --status in_progress \
@@ -256,7 +256,7 @@ track status --json | jq '.tracks[] | select(.status == "in_progress") | {id, ti
 *Agent adds tests...*
 
 ```bash
-track continue n7o8p9q0 \
+track update n7o8p9q0 \
   --summary "Logout functionality fully complete. API method, navbar button, localStorage clearing, redirect all working. Tests added (tests/logout.test.tsx): logout API call test, localStorage clearing test, redirect test, edge case test (logout when not logged in). All 4 tests passing. Feature production-ready." \
   --next "None - logout complete" \
   --status done \
@@ -266,7 +266,7 @@ track continue n7o8p9q0 \
 **Step 3: Mark parent feature as complete**
 
 ```bash
-track continue b5c6d7e8 \
+track update b5c6d7e8 \
   --summary "Login/Logout flow feature complete. Login form component (LoginForm.tsx) with Formik validation, API integration (src/api/auth.ts), error handling, loading states. Logout functionality (Navbar.tsx) with API integration, localStorage clearing, redirect. All components tested. All tests passing. Feature ready for production." \
   --next "None - feature complete" \
   --status done
@@ -292,7 +292,7 @@ User Authentication System (x1y2z3a4) [planned]
 **Step 5: Start next feature**
 
 ```bash
-track continue f9g0h1i2 \
+track update f9g0h1i2 \
   --summary "Starting protected routes feature. Need route guards to prevent unauthenticated access to protected pages." \
   --next "Create ProtectedRoute component (src/components/ProtectedRoute.tsx). Check localStorage for authToken. If token exists: render children. If no token: redirect to /login. Wrap protected pages with this component in App.tsx routing." \
   --status in_progress \
@@ -439,7 +439,7 @@ Session 3: Agent sees complete history in summaries, makes progress
 ### 3. Explicit Handoffs
 
 ```bash
-track continue abc123 \
+track update abc123 \
   --summary "API integration 80% done. Auth endpoints working. Token refresh NOT implemented yet." \
   --next "HANDOFF: Next agent should implement token refresh in src/api/auth.ts using refresh_token from login response. Store refresh_token in localStorage. On 401 error, attempt refresh before showing error. Max 1 retry attempt. See RFC 6749 for OAuth2 refresh flow." \
   --status in_progress
@@ -474,13 +474,13 @@ track continue abc123 \
 ### ❌ Forgetting File Associations
 
 ```bash
-track continue abc123 --summary "Added new file" --next "..."
+track update abc123 --summary "Added new file" --next "..."
 ```
 
 ### ✅ Always Associate Files
 
 ```bash
-track continue abc123 \
+track update abc123 \
   --summary "Added new auth interceptor" \
   --next "..." \
   --file src/api/interceptors.ts

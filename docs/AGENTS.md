@@ -10,14 +10,14 @@ Copy this file to your project root as `AGENTS.md`. Purpose: keep agents aligned
 ## Core Workflow
 
 - Start session: `track status --json` → pick items with `in_progress`, `planned`, or `blocked`; read `summary` and `next_prompt`.
-- During work: create leaves with `track new "<title>" --parent <id> --summary "<state>" --next "<action>" --file <path>`. Update any item with `track continue <id> ...` (defaults `status` to `in_progress` unless overridden).
-- End session: run `track continue` with a concise summary of work done and an actionable `--next`.
+- During work: create leaves with `track new "<title>" --parent <id> --summary "<state>" --next "<action>" --file <path>`. Update any item with `track update <id> ...` (defaults `status` to `in_progress` unless overridden).
+- End session: run `track update` with a concise summary of work done and an actionable `--next`.
 
 ## Command Cheatsheet (when to use)
 
 - `track init [name]` — once per repo (or to reset with `--force`).
 - `track new "<title>"` — add feature/task; omit `--parent` to attach to root.
-- `track continue <id>` — any update (status, summary, next, files).
+- `track update <id>` — any update (status, summary, next, files).
 - `track status --json` — always use JSON for parsing/selection.
 
 ## Status & JSON Contract

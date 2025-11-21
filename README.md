@@ -47,7 +47,7 @@ track new "Login Form" \
   --file src/components/LoginForm.tsx
 
 # Update progress
-track continue <task-id> \
+track update <task-id> \
   --summary "Form component created, validation added" \
   --next "Wire up authentication API call" \
   --status in_progress \
@@ -97,12 +97,12 @@ track new "API Integration" \
 - `--next <text>` - What to do next
 - `--file <path>` - Associate file(s) with track (can repeat)
 
-### `track continue <track-id> [options]`
+### `track update <track-id> [options]`
 
 Update an existing track's state.
 
 ```bash
-track continue abc12345 \
+track update abc12345 \
   --summary "Completed form validation, started API integration" \
   --next "Handle authentication errors" \
   --status in_progress
@@ -166,7 +166,7 @@ Associate files with tracks to maintain context:
 track new "API Client" --file src/api/client.ts --file src/api/types.ts
 
 # During updates
-track continue abc12345 --file src/api/auth.ts
+track update abc12345 --file src/api/auth.ts
 ```
 
 File associations are **idempotent**—adding the same file twice won't create duplicates.
@@ -238,10 +238,10 @@ track status --json | jq '.tracks[] | select(.status == "in_progress")'
 
 # During work - create and update
 track new "Feature" --summary "Description" --next "First step"
-track continue <id> --summary "Progress made" --next "Next specific step"
+track update <id> --summary "Progress made" --next "Next specific step"
 
 # At session end - save state
-track continue <id> \
+track update <id> \
   --summary "COMPLETE summary of what exists, what works, what's left" \
   --next "SPECIFIC next step with file paths and context"
 ```
