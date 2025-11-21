@@ -79,4 +79,11 @@ commandMetadata.forEach((meta) => {
   }
 });
 
+const registeredNames = new Set(program.commands.map((c) => c.name()));
+commandMetadata.forEach((meta) => {
+  if (!registeredNames.has(meta.name)) {
+    throw new Error(`Command metadata "${meta.name}" missing handler registration`);
+  }
+});
+
 program.parse();
