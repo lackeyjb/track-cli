@@ -190,6 +190,47 @@ Get newest log entries (best-effort, bounded to max 20).
 **Note:** `quickstart.json` and `recipes.json` are maintained as static files in `src/mcp/data/`.
 `mcp:sync` only regenerates `version.json` and `state.json` from source.
 
+## Starting via CLI
+
+### Command
+
+```bash
+track mcp start [options]
+```
+
+Start the MCP server from the current directory. Requires a track project (`.track/track.db`) to exist.
+
+### Options
+
+- `-p, --port <port>` - Port to listen on (default: 8765)
+- `-h, --host <host>` - Host to bind to (default: 127.0.0.1)
+
+### Environment Variables
+
+Command-line options take precedence over environment variables:
+
+- `MCP_PORT` - Default port if not specified via --port
+- `MCP_HOST` - Default host if not specified via --host
+- `MCP_ERRORS_FILE` - Path to errors log file (default: `.track/mcp-errors.log`)
+
+### Examples
+
+```bash
+# Start with defaults (localhost:8765)
+track mcp start
+
+# Custom port
+track mcp start --port 8877
+
+# Custom host (WARNING: security implications)
+track mcp start --host 0.0.0.0
+
+# Using environment variables
+MCP_PORT=9000 track mcp start
+
+# Stop server: Press Ctrl+C in the terminal
+```
+
 ## Data Regeneration
 
 Run `npm run mcp:sync` after:
@@ -290,4 +331,139 @@ Use custom port:
 ```bash
 MCP_PORT=8877 npm run mcp:start &
 curl -s http://127.0.0.1:8877/mcp/track/quickstart | jq .
+```
+
+## Integration with AI Agents
+
+The `track mcp start` command is designed for integration with Claude Code, Codex, and other MCP-compatible AI coding assistants.
+
+### Claude Code Setup
+
+#### Method 1: Manual Configuration
+
+Edit `~/.claude.json` (or `~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "track-cli": {
+      "command": "track",
+      "args": ["mcp", "start"]
+    }
+  }
+}
+```
+
+#### Method 2: Claude CLI (if available)
+
+```bash
+claude mcp add track-cli -s user -- track mcp start
+```
+
+#### Project-Scoped Configuration
+
+For team sharing, create `.claude.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "track-cli": {
+      "command": "track",
+      "args": ["mcp", "start"]
+    }
+  }
+}
+```
+
+Commit to git so all team members benefit.
+
+### Codex Setup
+
+Edit `~/.codex/config.toml`:
+
+```toml
+[mcp.track-cli]
+command = "track"
+args = ["mcp", "start"]
+```
+
+Or use Codex CLI:
+
+```bash
+codex mcp add track-cli -- track mcp start
+```
+
+### Custom Port Configuration
+
+If port 8765 is in use:
+
+**Claude Code (JSON):**
+```json
+{
+  "mcpServers": {
+    "track-cli": {
+      "command": "track",
+      "args": ["mcp", "start", "--port", "8877"]
+    }
+  }
+}
+```
+
+**Codex (TOML):**
+```toml
+[mcp.track-cli]
+command = "track"
+args = ["mcp", "start", "--port", "8877"]
+```
+
+### Testing the Connection
+
+1. **Manual test:**
+   ```bash
+   # Start server
+   cd your-project
+   track mcp start
+
+   # In another terminal
+   curl http://127.0.0.1:8765/mcp/track/version | jq
+   ```
+
+2. **Via AI Agent:**
+   Ask Claude Code or Codex:
+   - "What's my track project status?"
+   - "Show me the quickstart guide"
+   - "What are the available track commands?"
+
+### Troubleshooting Integration
+
+#### Server Won't Start
+
+**Error:** `No track project found in this directory`
+
+**Solution:** Run `track init` first
+
+---
+
+**Error:** `Port already in use`
+
+**Solution:** Use different port:
+```bash
+track mcp start --port 8877
+```
+
+#### Agent Can't Connect
+
+1. Check server is running: `ps aux | grep "track mcp"`
+2. Verify config file syntax (JSON/TOML)
+3. Restart AI agent application
+4. Check agent logs for MCP connection errors
+
+#### Stale Data
+
+**Problem:** Agent sees old track data
+
+**Solution:** MCP server reads database on each request. Restart server if needed:
+```bash
+# Ctrl+C to stop
+track mcp start
 ```

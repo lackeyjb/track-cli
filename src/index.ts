@@ -5,6 +5,7 @@ import { initCommand } from './commands/init.js';
 import { newCommand } from './commands/new.js';
 import { updateCommand } from './commands/update.js';
 import { statusCommand } from './commands/status.js';
+import { mcpStartCommand } from './commands/mcp.js';
 import { commandMetadata, CommandFlag } from './commands/metadata.js';
 
 const program = new Command();
@@ -71,6 +72,17 @@ commandMetadata.forEach((meta) => {
     case 'status':
       cmd.action((options: { json?: boolean }) => {
         statusCommand(options);
+      });
+      break;
+    case 'mcp':
+      cmd.action((action: string, options: { port?: number; host?: string }) => {
+        if (action === 'start') {
+          mcpStartCommand(options);
+        } else {
+          console.error(`Error: Unknown mcp action: ${action}`);
+          console.error('Available actions: start');
+          process.exit(1);
+        }
       });
       break;
     default:

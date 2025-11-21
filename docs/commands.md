@@ -8,6 +8,7 @@ Quick reference for all Track CLI commands.
 - [`track new`](#track-new) - Create track
 - [`track update`](#track-update) - Update track
 - [`track status`](#track-status) - Display status
+- [`track mcp start`](#track-mcp-start) - Start MCP server
 
 ## Global Options
 
@@ -504,6 +505,137 @@ track status --json | jq '[.tracks | group_by(.status)[] | {status: .[0].status,
 ```bash
 track status --json | jq '.tracks[] | select(.kind == "task")'
 ```
+
+---
+
+## `track mcp start`
+
+Start the MCP server for AI agent integration.
+
+### Synopsis
+
+```bash
+track mcp start [options]
+```
+
+### Options
+
+- `-p, --port <port>` - Port to listen on (optional)
+  - Default: `8765` (or `MCP_PORT` environment variable)
+  - Must be between 1 and 65535
+
+- `-h, --host <host>` - Host to bind to (optional)
+  - Default: `127.0.0.1` (or `MCP_HOST` environment variable)
+  - **Security warning:** Only bind to non-localhost addresses in trusted networks
+
+### Examples
+
+**Start with defaults:**
+```bash
+track mcp start
+```
+
+**Custom port:**
+```bash
+track mcp start --port 8877
+```
+
+**Custom host:**
+```bash
+track mcp start --host 0.0.0.0
+```
+
+**Using environment variables:**
+```bash
+MCP_PORT=9000 MCP_HOST=127.0.0.1 track mcp start
+```
+
+### Output
+
+**Success:**
+```
+Starting MCP server...
+Working directory: /path/to/project
+Database: .track/track.db
+
+MCP server listening on http://127.0.0.1:8765/mcp/track
+
+Press Ctrl+C to stop the server.
+```
+
+**Error - no project:**
+```
+Error: No track project found in this directory.
+Run "track init" first to initialize a project.
+
+Note: The MCP server needs a .track/track.db to serve project data.
+```
+
+**Error - invalid port:**
+```
+Error: Invalid port: 99999
+Port must be a number between 1 and 65535.
+```
+
+### What It Does
+
+1. Validates project exists (has `.track/track.db`)
+2. Parses port and host from options or environment variables
+3. Starts HTTP server on specified port/host
+4. Exposes MCP endpoints:
+   - `/mcp/track/quickstart` - Command patterns and workflows
+   - `/mcp/track/recipes` - jq query recipes
+   - `/mcp/track/status` - Live project data (with filtering)
+   - `/mcp/track/version` - CLI and schema version
+   - `/mcp/track/state` - Working directory info
+   - `/mcp/track/recent-errors` - Error log entries
+5. Runs until stopped with Ctrl+C
+
+### Notes
+
+- Server reads database on each request (no caching)
+- All endpoints are read-only (cannot create/update tracks via MCP)
+- Write operations remain CLI-only (maintains "opaque storage" principle)
+- Default host (`127.0.0.1`) is localhost-only for security
+- Non-localhost binding shows security warning
+- No authentication provided (assumes localhost-only or trusted network)
+
+### Integration
+
+Configure AI agents to use the MCP server:
+
+**Claude Code (`~/.claude.json`):**
+```json
+{
+  "mcpServers": {
+    "track-cli": {
+      "command": "track",
+      "args": ["mcp", "start"]
+    }
+  }
+}
+```
+
+**Codex (`~/.codex/config.toml`):**
+```toml
+[mcp.track-cli]
+command = "track"
+args = ["mcp", "start"]
+```
+
+### Environment Variables
+
+- `MCP_PORT` - Default port (default: `8765`)
+- `MCP_HOST` - Default host (default: `127.0.0.1`)
+- `MCP_ERRORS_FILE` - Errors log path (default: `.track/mcp-errors.log`)
+
+Command-line options take precedence over environment variables.
+
+### See Also
+
+- [MCP Server Guide](mcp.md) - Complete endpoint reference and integration guide
+- [AI Agent Integration](AGENTS.md) - Patterns for AI usage
+- [Examples](../examples/ai-agent-usage.md) - AI agent workflow examples
 
 ---
 

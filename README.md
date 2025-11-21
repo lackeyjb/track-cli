@@ -230,6 +230,39 @@ For LLM tool calling (OpenAI, Anthropic, etc.):
 - `docs/schema.json` - JSON schema for `track status --json` output
 - `docs/tools.json` - Function calling definitions for all commands
 
+### 4. MCP Server (Claude Code, Codex, etc.)
+
+For MCP-compatible AI assistants, start the built-in server:
+
+```bash
+# In your project directory
+track mcp start
+
+# Custom port
+track mcp start --port 8877
+```
+
+**Configure Claude Code (`~/.claude.json`):**
+```json
+{
+  "mcpServers": {
+    "track-cli": {
+      "command": "track",
+      "args": ["mcp", "start"]
+    }
+  }
+}
+```
+
+**Configure Codex (`~/.codex/config.toml`):**
+```toml
+[mcp.track-cli]
+command = "track"
+args = ["mcp", "start"]
+```
+
+See [docs/mcp.md](docs/mcp.md) for complete MCP integration guide.
+
 ### Basic Session Pattern
 
 ```bash

@@ -142,4 +142,29 @@ export const commandMetadata: CommandMetadata[] = [
     usage: 'track status [--json]',
     example: 'track status --json',
   },
+  {
+    name: 'mcp',
+    summary: 'Start the MCP server for AI agent integration',
+    flags: [
+      {
+        name: 'port',
+        alias: 'p',
+        description: 'Port to listen on (default: 8765)',
+        type: 'number',
+        required: false,
+        cliFlag: '-p, --port <port>',
+      },
+      {
+        name: 'host',
+        alias: 'h',
+        description: 'Host to bind to (default: 127.0.0.1)',
+        type: 'string',
+        required: false,
+        cliFlag: '-h, --host <host>',
+      },
+    ],
+    args: [{ name: 'action', required: true, description: 'Action to perform (start)' }],
+    usage: 'track mcp start [-p|--port <port>] [-h|--host <host>]',
+    example: 'track mcp start --port 8877',
+  },
 ];
