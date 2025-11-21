@@ -1,6 +1,8 @@
 import http from 'node:http';
 import { Buffer } from 'node:buffer';
-import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { URL, fileURLToPath } from 'node:url';
 import {
   CommandsPayload,
   Envelope,
@@ -8,13 +10,6 @@ import {
   MAX_PAYLOAD_BYTES,
   StatePayload,
 } from './types.js';
-
-const require = createRequire(import.meta.url);
-
-const commandsEnvelope = require('./data/commands.json');
-const examplesEnvelope = require('./data/examples.json');
-const stateEnvelope = require('./data/state.json');
-const versionEnvelope = require('./data/version.json');
 
 const PATH_PREFIX = '/mcp/track';
 const DEFAULT_PORT = 8765;
@@ -26,11 +21,20 @@ type EnvelopeMap = {
   version: Envelope<{ cli: string; schema: number }>;
 };
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function loadEnvelope<T>(relativePath: string): Envelope<T> {
+  const fullPath = resolve(__dirname, relativePath);
+  const raw = readFileSync(fullPath, 'utf8');
+  const parsed = JSON.parse(raw) as unknown;
+  return parsed as Envelope<T>;
+}
+
 const envelopes: EnvelopeMap = {
-  commands: commandsEnvelope as Envelope<CommandsPayload>,
-  examples: examplesEnvelope as Envelope<ExamplesPayload>,
-  state: stateEnvelope as Envelope<StatePayload>,
-  version: versionEnvelope as Envelope<{ cli: string; schema: number }>,
+  commands: loadEnvelope<CommandsPayload>('./data/commands.json'),
+  examples: loadEnvelope<ExamplesPayload>('./data/examples.json'),
+  state: loadEnvelope<StatePayload>('./data/state.json'),
+  version: loadEnvelope<{ cli: string; schema: number }>('./data/version.json'),
 };
 
 function sendJson(
@@ -38,7 +42,7 @@ function sendJson(
   status: number,
   body: Envelope<unknown> | { error: string },
   etag?: string,
-  lastModified?: string,
+  lastModified?: string
 ): void {
   const payload = JSON.stringify(body);
   const size = Buffer.byteLength(payload, 'utf8');
@@ -48,7 +52,7 @@ function sendJson(
     res.end(
       JSON.stringify({
         error: `Payload exceeded ${MAX_PAYLOAD_BYTES} bytes (${size}). Trim resource data before serving.`,
-      }),
+      })
     );
     return;
   }
@@ -186,7 +190,6 @@ function route(req: http.IncomingMessage, res: http.ServerResponse): void {
 export function startServer(port = DEFAULT_PORT): http.Server {
   const server = http.createServer(route);
   server.listen(port, '127.0.0.1', () => {
-    // eslint-disable-next-line no-console
     console.log(`MCP server listening on http://127.0.0.1:${port}${PATH_PREFIX}`);
   });
   return server;
