@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
 import { newCommand } from './commands/new.js';
-import { continueCommand } from './commands/continue.js';
+import { updateCommand } from './commands/update.js';
 import { statusCommand } from './commands/status.js';
 
 const program = new Command();
@@ -47,9 +47,9 @@ program
     }
   );
 
-// track continue <track-id> --summary "..." --next "..." [--status <status>] [--file <file-path>]...
+// track update <track-id> --summary "..." --next "..." [--status <status>] [--file <file-path>]...
 program
-  .command('continue')
+  .command('update')
   .description('Update the current state of an existing track')
   .argument('<track-id>', 'Track ID to update')
   .requiredOption('--summary <summary>', 'Updated state description')
@@ -71,7 +71,7 @@ program
       trackId: string,
       options: { summary: string; next: string; status: string; file?: string[] }
     ) => {
-      continueCommand(trackId, options);
+      updateCommand(trackId, options);
     }
   );
 

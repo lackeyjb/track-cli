@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { statusCommand } from '../status.js';
 import { initCommand } from '../init.js';
 import { newCommand } from '../new.js';
-import { continueCommand } from '../continue.js';
+import { updateCommand } from '../update.js';
 import { getDatabasePath } from '../../utils/paths.js';
 import * as lib from '../../lib/db.js';
 import { withTempDir } from '../../__tests__/helpers/test-fs.js';
@@ -290,7 +290,7 @@ describe('status command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(root!.id, {
+        updateCommand(root!.id, {
           summary: 'Project summary',
           next: 'Next step',
           status: 'in_progress',

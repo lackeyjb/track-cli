@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getDatabasePath } from '../../utils/paths.js';
-import { continueCommand } from '../continue.js';
+import { updateCommand } from '../update.js';
 import { initCommand } from '../init.js';
 import { newCommand } from '../new.js';
 import * as lib from '../../lib/db.js';
 import { withTempDir } from '../../__tests__/helpers/test-fs.js';
 import { mockConsole, mockProcessExit } from '../../__tests__/helpers/mocks.js';
 
-describe('continue command', () => {
+describe('update command', () => {
   let consoleMock: ReturnType<typeof mockConsole>;
   let exitMock: ReturnType<typeof mockProcessExit>;
 
@@ -49,7 +49,7 @@ describe('continue command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(trackId, {
+        updateCommand(trackId, {
           summary: 'Updated summary',
           next: 'Updated next',
         });
@@ -82,7 +82,7 @@ describe('continue command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(trackId, {
+        updateCommand(trackId, {
           summary: 'Done',
           next: '',
           status: 'done',
@@ -119,7 +119,7 @@ describe('continue command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(trackId, {
+        updateCommand(trackId, {
           summary: 'Working on it',
           next: 'Keep going',
         });
@@ -156,7 +156,7 @@ describe('continue command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(trackId, {
+        updateCommand(trackId, {
           summary: 'Updated',
           next: 'Next',
         });
@@ -188,7 +188,7 @@ describe('continue command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(trackId, {
+        updateCommand(trackId, {
           summary: 'Working',
           next: 'Next',
           file: ['file1.ts', 'file2.ts'],
@@ -226,7 +226,7 @@ describe('continue command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(trackId, {
+        updateCommand(trackId, {
           summary: 'Updated',
           next: 'Next',
           file: ['file1.ts', 'file2.ts'], // file1.ts is duplicate
@@ -260,7 +260,7 @@ describe('continue command', () => {
         consoleMock = mockConsole();
         exitMock = mockProcessExit();
 
-        continueCommand(trackId, {
+        updateCommand(trackId, {
           summary: 'Updated',
           next: 'Next',
           status: 'done',
@@ -299,7 +299,7 @@ describe('continue command', () => {
           consoleMock = mockConsole();
           exitMock = mockProcessExit();
 
-          continueCommand(trackId, {
+          updateCommand(trackId, {
             summary: 'Updated',
             next: 'Next',
             status,
@@ -316,7 +316,7 @@ describe('continue command', () => {
     it('should exit with error when project not initialized', async () => {
       await withTempDir(() => {
         try {
-          continueCommand('test123', {
+          updateCommand('test123', {
             summary: 'Summary',
             next: 'Next',
           });
@@ -342,7 +342,7 @@ describe('continue command', () => {
         exitMock = mockProcessExit();
 
         try {
-          continueCommand('nonexistent', {
+          updateCommand('nonexistent', {
             summary: 'Summary',
             next: 'Next',
           });
@@ -380,7 +380,7 @@ describe('continue command', () => {
         exitMock = mockProcessExit();
 
         try {
-          continueCommand(trackId, {
+          updateCommand(trackId, {
             summary: 'Updated',
             next: 'Next',
             status: 'invalid_status',

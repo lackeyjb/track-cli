@@ -5,9 +5,9 @@ import { isValidStatus, VALID_STATUSES } from '../models/types.js';
 import type { UpdateTrackParams, Status } from '../models/types.js';
 
 /**
- * Options for the continue command.
+ * Options for the update command.
  */
-export interface ContinueCommandOptions {
+export interface UpdateCommandOptions {
   summary: string;
   next: string;
   status?: string;
@@ -21,7 +21,7 @@ export interface ContinueCommandOptions {
  * @param options - Command options (summary, next_prompt, status, files)
  * @throws Error if validation fails or track update fails
  */
-export function continueCommand(trackId: string, options: ContinueCommandOptions): void {
+export function updateCommand(trackId: string, options: UpdateCommandOptions): void {
   // 1. Validate project exists
   if (!projectExists()) {
     console.error('Error: No track project found in this directory.');
