@@ -207,4 +207,10 @@ export class TrackManager {
 }
 
 // Re-export database functions for advanced use cases
-export { initializeDatabase, createTrack, updateTrack, getAllTracks, getAllTrackFiles } from './db.js';
+export {
+  initializeDatabase,
+  createTrack,
+  updateTrack,
+  getAllTracks,
+  getAllTrackFiles,
+} from './db.js';
