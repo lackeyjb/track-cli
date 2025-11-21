@@ -315,6 +315,13 @@ track status --json | jq '.tracks[] | select(.status == "in_progress")'  # Find 
 cat <file-from-next-prompt>                           # Read relevant files
 ```
 
+**Warm-up jq trio (copy/paste):**
+```bash
+track status --json | jq '.tracks[] | select(.status=="in_progress") | {id, title, kind}'
+track status --json | jq '.tracks[] | select(.status=="in_progress") | {title, next: .next_prompt}'
+track status --json | jq -r '.tracks[] | select(.status=="in_progress") | .files[]?'
+```
+
 ### 2. Comprehensive Summaries
 
 **Why:** No history to reference, next agent needs complete picture.

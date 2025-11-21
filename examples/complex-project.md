@@ -366,6 +366,30 @@ track status --json | jq '
 
 Calculation: 1 done / 3 active tasks (excluding superseded) = 33% complete
 
+### Query 8: Blocked Items With Parents (for escalation lists)
+
+```bash
+track status --json | jq '.tracks[] | select(.status=="blocked") | {title, parent: .parent_id, why: .summary}'
+```
+
+### Query 9: Completion % Per Feature (single number)
+
+```bash
+FEATURE="u1v2w3x4"; track status --json \
+  | jq --arg f "$FEATURE" '
+      [ .tracks[] | select(.parent_id==$f and .status!="superseded") ] as $kids
+      | ($kids | map(select(.status=="done")) | length) as $done
+      | ($kids | length) as $total
+      | {feature: $f, percent: (if $total==0 then 0 else (100*$done/$total) end)}
+    '
+```
+
+### Query 10: Superseded Tracks and Their Replacements
+
+```bash
+track status --json | jq '.tracks[] | select(.status=="superseded") | {title, replacement: .next_prompt}'
+```
+
 ## Workflow Patterns Demonstrated
 
 ### Pattern 1: Parallel Feature Development

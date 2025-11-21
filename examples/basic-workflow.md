@@ -342,6 +342,19 @@ track status --json
 }
 ```
 
+### Quick Sanity Checks (jq)
+
+- Validate the walkthrough left three tasks and nothing planned:
+  ```bash
+  track status --json | jq '{tasks: [.tracks[] | select(.kind=="task")] | length, planned: [.tracks[] | select(.status=="planned")] | length}'
+  ```
+  Expected after finishing: `tasks: 3`, `planned: 0`.
+
+- Surface the active next step (first non-done with a breadcrumb):
+  ```bash
+  track status --json | jq -r '[.tracks[] | select(.status!="done" and .next_prompt|length>0)][0].next_prompt'
+  ```
+
 ## Key Takeaways
 
 ### Hierarchy Structure
