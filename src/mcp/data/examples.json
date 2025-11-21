@@ -1,8 +1,25 @@
 {
   "data": {
-    "examples": []
+    "examples": [
+      {
+        "name": "init",
+        "example": "track init \"My Project\""
+      },
+      {
+        "name": "new",
+        "example": "track new \"Add login screen\" --parent ROOT123 --summary \"UI stub\" --next \"Hook API\""
+      },
+      {
+        "name": "update",
+        "example": "track update ABC123 --summary \"API wired\" --next \"Write tests\" --status in_progress"
+      },
+      {
+        "name": "status",
+        "example": "track status --json"
+      }
+    ]
   },
-  "lastUpdated": "1970-01-01T00:00:00.000Z",
+  "lastUpdated": "2025-11-21T14:51:29.311Z",
   "schemaVersion": 1,
-  "etag": "dev-empty"
+  "etag": "5b0a685004a6"
 }

@@ -1,8 +1,122 @@
 {
   "data": {
-    "commands": []
+    "commands": [
+      {
+        "name": "init",
+        "summary": "Initialize a new track project in the current directory",
+        "flags": [
+          {
+            "name": "force",
+            "alias": "F",
+            "description": "Overwrite existing .track directory if present",
+            "type": "boolean",
+            "required": false,
+            "defaultValue": false
+          }
+        ],
+        "args": [
+          {
+            "name": "name",
+            "required": false,
+            "description": "Project name (defaults to directory name)"
+          }
+        ],
+        "usage": "track init [name] [-F|--force]"
+      },
+      {
+        "name": "new",
+        "summary": "Create a new track",
+        "flags": [
+          {
+            "name": "parent",
+            "description": "Parent track ID",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "summary",
+            "description": "Current state description",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "next",
+            "description": "What to do next",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "file",
+            "description": "Associated file path (repeatable)",
+            "type": "string[]",
+            "required": false
+          }
+        ],
+        "args": [
+          {
+            "name": "title",
+            "required": true,
+            "description": "Track title"
+          }
+        ],
+        "usage": "track new \"<title>\" [--parent <track-id>] [--summary \"...\"] [--next \"...\"] [--file <path>]..."
+      },
+      {
+        "name": "update",
+        "summary": "Update the current state of an existing track",
+        "flags": [
+          {
+            "name": "summary",
+            "description": "Updated state description",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "next",
+            "description": "What to do next",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "status",
+            "description": "Track status (planned|in_progress|done|blocked|superseded)",
+            "type": "string",
+            "required": false,
+            "defaultValue": "in_progress"
+          },
+          {
+            "name": "file",
+            "description": "Associated file path (repeatable)",
+            "type": "string[]",
+            "required": false
+          }
+        ],
+        "args": [
+          {
+            "name": "track-id",
+            "required": true,
+            "description": "Track ID to update"
+          }
+        ],
+        "usage": "track update <track-id> --summary \"...\" --next \"...\" [--status <status>] [--file <file-path>]..."
+      },
+      {
+        "name": "status",
+        "summary": "Display the current state of the project and all tracks",
+        "flags": [
+          {
+            "name": "json",
+            "description": "Output as JSON",
+            "type": "boolean",
+            "required": false
+          }
+        ],
+        "args": [],
+        "usage": "track status [--json]"
+      }
+    ]
   },
-  "lastUpdated": "2025-11-21T14:41:36.479Z",
+  "lastUpdated": "2025-11-21T14:51:29.310Z",
   "schemaVersion": 1,
-  "etag": "placeholder-1763736096479"
+  "etag": "e7f3a9848563"
 }
