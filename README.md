@@ -294,7 +294,6 @@ track update <id> \
 - [Command Reference](docs/commands.md) - Quick lookup for all commands
 - [AI Agent Integration](docs/AGENTS.md) - Patterns for AI agent usage
 - [Examples](examples/) - Real-world workflow examples
-***REMOVED***
 
 ## Development
 
@@ -335,9 +334,6 @@ track-cli/
 │   └── utils/          # Shared utilities
 ├── docs/               # User documentation
 ├── examples/           # Usage examples
-***REMOVED***
-***REMOVED***
-***REMOVED***
 └── CLAUDE.md           # Development principles
 ```
 
@@ -352,7 +348,6 @@ Track CLI follows a layered architecture with clean separation of concerns:
 - **Storage**: SQLite operations (CRUD, queries)
 - **Commands**: CLI command handlers
 
-***REMOVED***
 
 ### Design Principles
 

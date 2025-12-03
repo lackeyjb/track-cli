@@ -11,7 +11,7 @@ When working on this codebase, adhere to these core principles:
 ## YAGNI (You Aren't Gonna Need It)
 
 - Don't add functionality until it's actually needed
-- v1 focuses on core features only 
+- v1 focuses on core features only
 - Resist the urge to build for hypothetical future requirements
 
 ## SOLID Principles
@@ -42,8 +42,6 @@ When working on this codebase, adhere to these core principles:
 - Stable JSON output for `track status --json`
 - Comprehensive summaries (no history to rely on)
 - Opaque storage (SQLite) enforces CLI usage
-
-***REMOVED***
 
 ## Quick Reference
 

@@ -731,4 +731,3 @@ track status --json | jq -r '.tracks[] | select(.kind == "feature") | "\(.id): \
 - See [Command Reference](commands.md) for detailed command documentation
 - Check [AI Agent Integration](AGENTS.md) for AI-specific patterns
 - Browse [Examples](../examples/) for complete workflow examples
-***REMOVED***

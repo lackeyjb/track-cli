@@ -754,4 +754,3 @@ No environment variables supported in v1. All configuration is per-project in `.
 - [AI Agent Integration](AGENTS.md) - Patterns for AI usage
 - [Examples](../examples/) - Real-world examples
 - [Installation](installation.md) - Setup instructions
-***REMOVED***
