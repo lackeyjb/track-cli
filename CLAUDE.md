@@ -28,7 +28,7 @@ When working on this codebase, adhere to these core principles:
 
 - This is a minimal CLI tool for AI agents
 - 2 tables (tracks, track_files) - no more
-- 4 commands (init, new, continue, status) - keep it focused
+- 5 commands (init, new, update, status, show) - keep it focused
 - Current state only (no history in v1)
 
 **Extensible by Design**

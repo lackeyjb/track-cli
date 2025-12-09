@@ -8,6 +8,7 @@ Quick reference for all Track CLI commands.
 - [`track new`](#track-new) - Create track
 - [`track update`](#track-update) - Update track
 - [`track status`](#track-status) - Display status
+- [`track show`](#track-show) - Show track details
 - [`track mcp start`](#track-mcp-start) - Start MCP server
 
 ## Global Options
@@ -505,6 +506,102 @@ track status --json | jq '[.tracks | group_by(.status)[] | {status: .[0].status,
 ```bash
 track status --json | jq '.tracks[] | select(.kind == "task")'
 ```
+
+---
+
+## `track show`
+
+Display details for a specific track.
+
+### Synopsis
+
+```bash
+track show <track-id> [options]
+```
+
+### Arguments
+
+- `track-id` - Track ID to display (required)
+  - Must be a valid 8-character track ID
+
+### Options
+
+- `--json` - Output JSON format (optional)
+  - Machine-readable format
+  - Includes all track data
+  - Perfect for AI agents and scripts
+
+### Examples
+
+**Human-readable format:**
+```bash
+track show abc12345
+```
+
+**JSON output:**
+```bash
+track show abc12345 --json
+```
+
+### Output
+
+**Human-readable format:**
+```
+[task] abc12345 - Login Form
+  summary: Form component created with validation
+  next:    Wire up authentication API call
+  status:  in_progress
+  files:   src/components/LoginForm.tsx, src/hooks/useLogin.ts
+```
+
+**JSON format:**
+```json
+{
+  "id": "abc12345",
+  "title": "Login Form",
+  "parent_id": "def67890",
+  "summary": "Form component created with validation",
+  "next_prompt": "Wire up authentication API call",
+  "status": "in_progress",
+  "kind": "task",
+  "files": [
+    "src/components/LoginForm.tsx",
+    "src/hooks/useLogin.ts"
+  ],
+  "children": [],
+  "created_at": "2025-01-15T10:00:00.000Z",
+  "updated_at": "2025-01-15T14:30:00.000Z"
+}
+```
+
+**Error - no project:**
+```
+Error: No track project found in this directory.
+Run "track init" first to initialize a project.
+```
+
+**Error - track not found:**
+```
+Error: Unknown track id: xyz99999
+```
+
+### What It Does
+
+1. Validates project exists
+2. Retrieves all tracks from database
+3. Retrieves all file associations
+4. Builds hierarchical tree structure to derive kind
+5. Finds the requested track by ID
+6. Outputs in requested format:
+   - **Human**: Track details with labels
+   - **JSON**: Complete track data with all fields
+
+### Notes
+
+- Human format shows kind, ID, title, summary, next, status, and files
+- JSON format includes ALL track fields
+- Kinds are derived on-the-fly (not stored)
+- Simpler than using `track status --json | jq '.tracks[] | select(.id == "...")'`
 
 ---
 

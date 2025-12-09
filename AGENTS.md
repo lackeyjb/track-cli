@@ -26,7 +26,7 @@
 
 - KISS & YAGNI: prefer simple solutions; build only what v1 needs.
 - SOLID-minded: single responsibility, small interfaces, depend on abstractions.
-- Constraints: 4 commands, 2 tables; current state only (no history in v1); keep storage/models/commands/utils separate.
+- Constraints: 5 commands, 2 tables; current state only (no history in v1); keep storage/models/commands/utils separate.
 - AI-friendly: stable JSON via `track status --json`; write comprehensive summaries and actionable next steps; use the CLI, not direct SQLite access.
 
 ## Testing Guidelines

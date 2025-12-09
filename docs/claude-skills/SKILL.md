@@ -92,6 +92,7 @@ track update <track-id> \
 | `track new "<title>"` | Create track | `--parent <id>` `--summary <text>` `--next <text>` `--file <path>` |
 | `track update <id>` | Update track | `--summary <text>` `--next <text>` `--status <status>` `--file <path>` |
 | `track status` | View all tracks | `--json` for parsing |
+| `track show <id>` | View single track | `--json` for parsing |
 
 ## Status Values
 
@@ -173,8 +174,9 @@ track status --json  # Verify state saved
 # Find work to do
 track status --json | jq '.tracks[] | select(.status == "in_progress" or .status == "planned")'
 
-# Get specific track
-track status --json | jq '.tracks[] | select(.id == "abc12345")'
+# Get specific track (simpler than jq)
+track show abc12345
+track show abc12345 --json
 
 # Find all tasks
 track status --json | jq '.tracks[] | select(.kind == "task")'

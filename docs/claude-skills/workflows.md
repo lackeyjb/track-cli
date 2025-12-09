@@ -15,13 +15,17 @@ track status --json
 # Example with jq:
 track status --json | jq '.tracks[] | select(.status == "in_progress" or .status == "planned")'
 
-# 3. For each relevant track, examine:
+# 3. Get details for a specific track (simpler than jq)
+track show <track-id>
+track show <track-id> --json
+
+# 4. For each relevant track, examine:
 #    - summary: what's been done
 #    - next_prompt: what to do next
 #    - files: which files to read
 #    - children: if has sub-tasks
 
-# 4. Inform user of current state and offer to resume or start new work
+# 5. Inform user of current state and offer to resume or start new work
 ```
 
 **Example Output Interpretation:**
@@ -178,7 +182,7 @@ track update abc12345 \
   --status done
 
 # Agent 2: Starts UI work (next session)
-track status --json | jq '.tracks[] | select(.id == "abc12345")'
+track show abc12345
 # Reads handoff message, proceeds with UI work
 ```
 
@@ -192,7 +196,7 @@ track update abc12345 \
   --status in_progress
 
 # Session 2 - Agent B (different agent, later)
-track status --json | jq '.tracks[] | select(.id == "abc12345")'
+track show abc12345
 # Reads Agent A's summary and next steps
 # Continues exactly where Agent A left off
 

@@ -228,8 +228,8 @@ track status --json | jq '.tracks[] | select(.status == "in_progress")'
 # Find planned work
 track status --json | jq '.tracks[] | select(.status == "planned")'
 
-# Get track by ID
-track status --json | jq '.tracks[] | select(.id == "abc12345")'
+# Get track by ID (use track show instead for single tracks)
+track show abc12345 --json
 
 # List all files
 track status --json | jq -r '.tracks[].files[]' | sort | uniq
@@ -249,6 +249,66 @@ track status --json | jq '.tracks[] | select(.parent_id == null)'
 - JSON format includes ALL tracks
 - Kinds are derived on-the-fly (not stored)
 - Tree structure built from parent_id relationships
+
+---
+
+## `track show <track-id> [--json]`
+
+**Purpose:** Display details for a specific track.
+
+**Arguments:**
+- `track-id` (required) - 8-character track ID
+
+**Flags:**
+- `--json` - Output as JSON
+
+**Behavior:**
+1. Validates project exists
+2. Retrieves all tracks and file associations
+3. Builds tree to derive kind and children
+4. Finds requested track by ID
+5. Outputs in requested format
+
+**Human Output:**
+```
+[task] abc12345 - Login Form
+  summary: Form component created with validation
+  next:    Wire up authentication API call
+  status:  in_progress
+  files:   src/components/LoginForm.tsx, src/hooks/useLogin.ts
+```
+
+**JSON Output:**
+```json
+{
+  "id": "abc12345",
+  "title": "Login Form",
+  "parent_id": "def67890",
+  "summary": "Form component created with validation",
+  "next_prompt": "Wire up authentication API call",
+  "status": "in_progress",
+  "kind": "task",
+  "files": ["src/components/LoginForm.tsx", "src/hooks/useLogin.ts"],
+  "children": [],
+  "created_at": "2025-01-15T10:00:00.000Z",
+  "updated_at": "2025-01-15T14:30:00.000Z"
+}
+```
+
+**Errors:**
+- "No project initialized" - run `track init`
+- "Unknown track id" - verify ID from `track status --json`
+
+**Examples:**
+```bash
+track show abc12345
+track show abc12345 --json
+```
+
+**Notes:**
+- Simpler than `track status --json | jq '.tracks[] | select(.id == "...")'`
+- Returns single track object, not wrapped in `tracks` array
+- Includes all derived fields (kind, children)
 
 ---
 

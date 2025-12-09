@@ -11,7 +11,7 @@ Track CLI is a lightweight command-line tool designed for AI agents and develope
 - **Multi-agent safe**: SQLite with WAL mode for concurrent access
 - **Current-state focused**: No history tracking—comprehensive summaries instead
 - **File associations**: Link files to tracks for context
-- **Minimal API**: Just 4 commands to learn
+- **Minimal API**: Just 5 commands to learn
 
 ## Quick Start
 
@@ -138,6 +138,31 @@ My Web App (abc12345) [in_progress]
 ```
 
 **JSON Output:** Contains complete track data including IDs, status, summaries, next steps, file associations, and derived track kinds.
+
+### `track show <track-id> [--json]`
+
+Display details for a specific track.
+
+```bash
+track show abc12345        # Human-readable format
+track show abc12345 --json # JSON output for AI agents
+```
+
+**Options:**
+
+- `--json` - Output as JSON
+
+**Human Output Example:**
+
+```
+[task] abc12345 - Login Form
+  summary: Form component created with validation
+  next:    Wire up authentication API call
+  status:  in_progress
+  files:   src/components/LoginForm.tsx, src/hooks/useLogin.ts
+```
+
+**JSON Output:** Contains all track fields including id, title, kind, status, summary, next_prompt, files, children, and timestamps.
 
 ## Track Kinds
 
@@ -380,7 +405,7 @@ Track CLI follows a layered architecture with clean separation of concerns:
 
 ### vs. Other Task Trackers
 
-- Minimal API surface (4 commands)
+- Minimal API surface (5 commands)
 - No interactive prompts (AI-friendly)
 - Opaque storage prevents AI from bypassing CLI
 - Multi-agent concurrency built-in

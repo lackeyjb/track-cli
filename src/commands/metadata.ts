@@ -143,6 +143,22 @@ export const commandMetadata: CommandMetadata[] = [
     example: 'track status --json',
   },
   {
+    name: 'show',
+    summary: 'Display details for a specific track',
+    flags: [
+      {
+        name: 'json',
+        description: 'Output as JSON',
+        type: 'boolean',
+        required: false,
+        cliFlag: '--json',
+      },
+    ],
+    args: [{ name: 'track-id', required: true, description: 'Track ID to display' }],
+    usage: 'track show <track-id> [--json]',
+    example: 'track show ABC123 --json',
+  },
+  {
     name: 'mcp',
     summary: 'Start the MCP server for AI agent integration',
     flags: [

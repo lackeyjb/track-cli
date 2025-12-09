@@ -215,7 +215,10 @@ track update <task-id> \
 track status
 
 # What was I doing on this task?
-track status --json | jq '.tracks[] | select(.id == "<task-id>")'
+track show <task-id>
+
+# Or get JSON for programmatic parsing
+track show <task-id> --json
 
 # Read the summary and next_prompt
 # Do the work...
@@ -630,12 +633,14 @@ track update <task-id> \
 
 Install jq: `brew install jq` (macOS) or `apt-get install jq` (Linux)
 
+**Note:** For getting a single track by ID, `track show <id>` is simpler than using jq filters.
+
 ```bash
 # Pretty print JSON
 track status --json | jq .
 
-# Get track by ID
-track status --json | jq '.tracks[] | select(.id == "abc12345")'
+# Get track by ID (use track show instead for single tracks)
+track show abc12345 --json
 
 # List all task titles
 track status --json | jq -r '.tracks[] | select(.kind == "task") | .title'

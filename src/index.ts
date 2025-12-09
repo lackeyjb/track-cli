@@ -5,6 +5,7 @@ import { initCommand } from './commands/init.js';
 import { newCommand } from './commands/new.js';
 import { updateCommand } from './commands/update.js';
 import { statusCommand } from './commands/status.js';
+import { showCommand } from './commands/show.js';
 import { mcpStartCommand } from './commands/mcp.js';
 import { commandMetadata, CommandFlag } from './commands/metadata.js';
 
@@ -72,6 +73,11 @@ commandMetadata.forEach((meta) => {
     case 'status':
       cmd.action((options: { json?: boolean }) => {
         statusCommand(options);
+      });
+      break;
+    case 'show':
+      cmd.action((trackId: string, options: { json?: boolean }) => {
+        showCommand(trackId, options);
       });
       break;
     case 'mcp':

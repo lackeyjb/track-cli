@@ -19,6 +19,7 @@ Copy this file to your project root as `AGENTS.md`. Purpose: keep agents aligned
 - `track new "<title>"` — add feature/task; omit `--parent` to attach to root.
 - `track update <id>` — any update (status, summary, next, files).
 - `track status --json` — always use JSON for parsing/selection.
+- `track show <id>` — get details for a single track (simpler than jq filters).
 
 ## Status & JSON Contract
 
