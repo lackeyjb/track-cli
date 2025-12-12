@@ -308,7 +308,7 @@ describe('status command', () => {
 
         expect(output).toContain('summary: Project summary');
         expect(output).toContain('next:    Next step');
-        expect(output).toContain('status:  in_progress');
+        expect(output).toContain('● in_progress');
       });
     });
 
@@ -385,11 +385,11 @@ describe('status command', () => {
         // Check for super track (no indentation for content)
         expect(output).toContain('[super]');
 
-        // Check for feature track (2-space indentation)
-        expect(output).toContain('  [feature]');
+        // Check for feature track (tree prefix)
+        expect(output).toMatch(/(├──|└──) \[feature\]/);
 
-        // Check for task track (4-space indentation)
-        expect(output).toContain('    [task]');
+        // Check for task track (nested tree prefix)
+        expect(output).toMatch(/(├──|└──) \[task\]/);
       });
     });
 

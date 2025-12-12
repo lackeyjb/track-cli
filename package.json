@@ -41,7 +41,8 @@
   "dependencies": {
     "better-sqlite3": "^12.4.1",
     "commander": "^14.0.2",
-    "nanoid": "^5.1.6"
+    "nanoid": "^5.1.6",
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

@@ -3,6 +3,7 @@ import * as lib from '../lib/db.js';
 import { buildTrackTree } from '../models/tree.js';
 import { ACTIVE_STATUSES } from '../models/types.js';
 import type { TrackWithDetails } from '../models/types.js';
+import { TREE, colorKind, colorStatus, formatLabel } from '../utils/format.js';
 
 /**
  * Options for the status command.
@@ -96,7 +97,7 @@ function outputHuman(tracks: TrackWithDetails[]): void {
   console.log();
 
   // Print tree starting from root
-  printTrack(rootTrack, trackMap, 0);
+  printTrack(rootTrack, trackMap, [], true);
 }
 
 /**
@@ -109,40 +110,41 @@ function outputHuman(tracks: TrackWithDetails[]): void {
 function printTrack(
   track: TrackWithDetails,
   trackMap: Map<string, TrackWithDetails>,
-  depth: number
+  prefixParts: string[],
+  isLast: boolean
 ): void {
-  const indent = '  '.repeat(depth);
+  const nodePrefix = prefixParts.join('') + (isLast ? TREE.LAST : TREE.BRANCH) + ' ';
+  const detailsPrefix = prefixParts.join('') + (isLast ? TREE.SPACE : TREE.PIPE) + '  ';
 
-  // Print track header: [kind] id - title
-  console.log(`${indent}[${track.kind}] ${track.id} - ${track.title}`);
+  console.log(
+    `${nodePrefix}[${colorKind(track.kind)}] ${track.id} - ${track.title}`
+  );
 
-  // Print track details (summary, next, status, files) with extra indentation
-  const detailIndent = '  '.repeat(depth + 1);
-  console.log(`${detailIndent}summary: ${track.summary}`);
-  console.log(`${detailIndent}next:    ${track.next_prompt}`);
-  console.log(`${detailIndent}status:  ${track.status}`);
+  console.log(`${detailsPrefix}${formatLabel('summary:', track.summary)}`);
+  console.log(`${detailsPrefix}${formatLabel('next:', track.next_prompt)}`);
+  console.log(`${detailsPrefix}${formatLabel('status:', colorStatus(track.status))}`);
 
   if (track.files.length > 0) {
-    console.log(`${detailIndent}files:   ${track.files.join(', ')}`);
+    console.log(`${detailsPrefix}${formatLabel('files:', track.files.join(', '))}`);
   }
 
-  // Print blank line between tracks (except for last leaf)
-  if (track.children.length > 0) {
+  const children = track.children.filter(Boolean);
+  if (children.length > 0) {
     console.log();
   }
 
-  // Recursively print children
-  for (let i = 0; i < track.children.length; i++) {
-    const childId = track.children[i];
-    if (childId) {
-      const child = trackMap.get(childId);
-      if (child) {
-        printTrack(child, trackMap, depth + 1);
-        // Add blank line between siblings (except after last sibling)
-        if (i < track.children.length - 1) {
-          console.log();
-        }
-      }
+  for (let i = 0; i < children.length; i++) {
+    const childId = children[i];
+    if (!childId) continue;
+    const child = trackMap.get(childId);
+    if (!child) continue;
+
+    const childIsLast = i === children.length - 1;
+    const childPrefixParts = [...prefixParts, isLast ? TREE.SPACE : TREE.PIPE];
+
+    printTrack(child, trackMap, childPrefixParts, childIsLast);
+    if (i < children.length - 1) {
+      console.log();
     }
   }
 }

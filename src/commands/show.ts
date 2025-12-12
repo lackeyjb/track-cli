@@ -2,6 +2,7 @@ import { projectExists, getDatabasePath } from '../utils/paths.js';
 import * as lib from '../lib/db.js';
 import { buildTrackTree } from '../models/tree.js';
 import type { TrackWithDetails } from '../models/types.js';
+import { colorKind, colorStatus, formatLabel } from '../utils/format.js';
 
 /**
  * Options for the show command.
@@ -72,15 +73,15 @@ function outputJson(track: TrackWithDetails): void {
  */
 function outputHuman(track: TrackWithDetails): void {
   // Print track header: [kind] id - title
-  console.log(`[${track.kind}] ${track.id} - ${track.title}`);
+  console.log(`[${colorKind(track.kind)}] ${track.id} - ${track.title}`);
 
   // Print track details with indentation
   const indent = '  ';
-  console.log(`${indent}summary: ${track.summary}`);
-  console.log(`${indent}next:    ${track.next_prompt}`);
-  console.log(`${indent}status:  ${track.status}`);
+  console.log(`${indent}${formatLabel('summary:', track.summary)}`);
+  console.log(`${indent}${formatLabel('next:', track.next_prompt)}`);
+  console.log(`${indent}${formatLabel('status:', colorStatus(track.status))}`);
 
   if (track.files.length > 0) {
-    console.log(`${indent}files:   ${track.files.join(', ')}`);
+    console.log(`${indent}${formatLabel('files:', track.files.join(', '))}`);
   }
 }

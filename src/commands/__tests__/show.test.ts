@@ -346,7 +346,7 @@ describe('show command', () => {
 
         expect(output).toContain('summary: Project summary');
         expect(output).toContain('next:    Next step');
-        expect(output).toContain('status:  in_progress');
+        expect(output).toContain('● in_progress');
       });
     });
 
