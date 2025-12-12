@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { URL, fileURLToPath } from 'node:url';
 import { TrackManager } from '../lib/index.js';
+import { ACTIVE_STATUSES } from '../models/types.js';
 import {
   Envelope,
   QuickstartPayload,
@@ -176,12 +177,21 @@ function handleStatus(res: http.ServerResponse, url: URL): void {
     const manager = new TrackManager(dbPath);
     const { tracks } = manager.getStatus();
 
+    // Check for ?all=true to show all tracks (default: active only)
+    const showAll = url.searchParams.get('all') === 'true';
+
     // Optional filtering
     const statusFilter = url.searchParams.get('status');
     const kindFilter = url.searchParams.get('kind');
     const parentFilter = url.searchParams.get('parent');
 
     let filtered = tracks;
+
+    // Default to active tracks only (unless ?all=true or explicit status filter)
+    if (!showAll && !statusFilter) {
+      const activeStatuses = new Set(ACTIVE_STATUSES);
+      filtered = filtered.filter((t) => t.parent_id === null || activeStatuses.has(t.status));
+    }
 
     if (statusFilter) {
       const statuses = statusFilter.split(',');

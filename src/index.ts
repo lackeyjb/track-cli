@@ -71,7 +71,7 @@ commandMetadata.forEach((meta) => {
       );
       break;
     case 'status':
-      cmd.action((options: { json?: boolean }) => {
+      cmd.action((options: { json?: boolean; all?: boolean }) => {
         statusCommand(options);
       });
       break;

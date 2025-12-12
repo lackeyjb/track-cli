@@ -1,7 +1,13 @@
 import Database from 'better-sqlite3';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
-import type { CreateTrackParams, Track, UpdateTrackParams, TrackWithDetails } from './types.js';
+import type {
+  CreateTrackParams,
+  Track,
+  UpdateTrackParams,
+  TrackWithDetails,
+  Status,
+} from './types.js';
 
 // Re-export types for convenience
 export type { CreateTrackParams, Track, UpdateTrackParams, TrackWithDetails };
@@ -234,6 +240,22 @@ export function getAllTracks(dbPath: string): Track[] {
   return withDatabase(dbPath, (db) => {
     const stmt = db.prepare('SELECT * FROM tracks');
     return stmt.all() as Track[];
+  });
+}
+
+/**
+ * Get tracks filtered by status values.
+ * Uses the idx_tracks_status index for efficient filtering.
+ *
+ * @param dbPath - Path to the database file
+ * @param statuses - Array of status values to filter by
+ * @returns Array of tracks matching the given statuses
+ */
+export function getTracksByStatus(dbPath: string, statuses: Status[]): Track[] {
+  return withDatabase(dbPath, (db) => {
+    const placeholders = statuses.map(() => '?').join(', ');
+    const stmt = db.prepare(`SELECT * FROM tracks WHERE status IN (${placeholders})`);
+    return stmt.all(...statuses) as Track[];
   });
 }
 

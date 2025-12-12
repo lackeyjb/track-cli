@@ -430,4 +430,277 @@ describe('status command', () => {
       });
     });
   });
+
+  describe('filtering', () => {
+    it('should filter out done tracks by default', async () => {
+      await withTempDir(() => {
+        initCommand('Test Project');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Active Track', {
+          parent: root?.id,
+          summary: 'In progress',
+          next: 'Continue',
+        });
+
+        const activeId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Done Track', {
+          parent: root?.id,
+          summary: 'Completed',
+          next: 'Nothing',
+        });
+
+        const doneId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Mark as done
+        updateCommand(doneId, {
+          summary: 'Completed',
+          next: 'Nothing',
+          status: 'done',
+        });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Default status (no --all flag)
+        statusCommand({ json: true });
+
+        const logs = consoleMock.getLogs();
+        const output = JSON.parse(logs.join('\n'));
+
+        // Should include root and active track, but not done track
+        expect(output.tracks.some((t: any) => t.id === root?.id)).toBe(true);
+        expect(output.tracks.some((t: any) => t.id === activeId)).toBe(true);
+        expect(output.tracks.some((t: any) => t.id === doneId)).toBe(false);
+      });
+    });
+
+    it('should filter out superseded tracks by default', async () => {
+      await withTempDir(() => {
+        initCommand('Test Project');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Superseded Track', {
+          parent: root?.id,
+          summary: 'Old approach',
+          next: 'Abandoned',
+        });
+
+        const supersededId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Mark as superseded
+        updateCommand(supersededId, {
+          summary: 'Old approach',
+          next: 'Abandoned',
+          status: 'superseded',
+        });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        statusCommand({ json: true });
+
+        const logs = consoleMock.getLogs();
+        const output = JSON.parse(logs.join('\n'));
+
+        expect(output.tracks.some((t: any) => t.id === supersededId)).toBe(false);
+      });
+    });
+
+    it('should show all tracks with --all flag', async () => {
+      await withTempDir(() => {
+        initCommand('Test Project');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Done Track', {
+          parent: root?.id,
+          summary: 'Completed',
+          next: 'Nothing',
+        });
+
+        const doneId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        updateCommand(doneId, {
+          summary: 'Completed',
+          next: 'Nothing',
+          status: 'done',
+        });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // With --all flag
+        statusCommand({ json: true, all: true });
+
+        const logs = consoleMock.getLogs();
+        const output = JSON.parse(logs.join('\n'));
+
+        // Should include done track
+        expect(output.tracks.some((t: any) => t.id === doneId)).toBe(true);
+      });
+    });
+
+    it('should always include root track even if it has non-active status', async () => {
+      await withTempDir(() => {
+        initCommand('Test Project');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Mark root as done
+        updateCommand(root!.id, {
+          summary: 'Project complete',
+          next: 'Archive',
+          status: 'done',
+        });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        statusCommand({ json: true });
+
+        const logs = consoleMock.getLogs();
+        const output = JSON.parse(logs.join('\n'));
+
+        // Root should still be included even though it's done
+        expect(output.tracks.some((t: any) => t.id === root?.id)).toBe(true);
+      });
+    });
+
+    it('should show blocked tracks by default', async () => {
+      await withTempDir(() => {
+        initCommand('Test Project');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Blocked Track', {
+          parent: root?.id,
+          summary: 'Waiting',
+          next: 'Unblock',
+        });
+
+        const blockedId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        updateCommand(blockedId, {
+          summary: 'Waiting',
+          next: 'Unblock',
+          status: 'blocked',
+        });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        statusCommand({ json: true });
+
+        const logs = consoleMock.getLogs();
+        const output = JSON.parse(logs.join('\n'));
+
+        // Blocked tracks should be shown by default
+        expect(output.tracks.some((t: any) => t.id === blockedId)).toBe(true);
+      });
+    });
+
+    it('should filter in human-readable output', async () => {
+      await withTempDir(() => {
+        initCommand('Test Project');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Done Track', {
+          parent: root?.id,
+          summary: 'Completed',
+          next: 'Nothing',
+        });
+
+        const doneId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        updateCommand(doneId, {
+          summary: 'Completed',
+          next: 'Nothing',
+          status: 'done',
+        });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        statusCommand({ json: false });
+
+        const logs = consoleMock.getLogs();
+        const output = logs.join('\n');
+
+        // Done track should not appear
+        expect(output).not.toContain(doneId);
+        expect(output).not.toContain('Done Track');
+      });
+    });
+  });
 });

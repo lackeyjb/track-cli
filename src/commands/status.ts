@@ -1,6 +1,7 @@
 import { projectExists, getDatabasePath } from '../utils/paths.js';
 import * as lib from '../lib/db.js';
 import { buildTrackTree } from '../models/tree.js';
+import { ACTIVE_STATUSES } from '../models/types.js';
 import type { TrackWithDetails } from '../models/types.js';
 
 /**
@@ -8,6 +9,7 @@ import type { TrackWithDetails } from '../models/types.js';
  */
 export interface StatusCommandOptions {
   json?: boolean;
+  all?: boolean;
 }
 
 /**
@@ -27,16 +29,26 @@ export function statusCommand(options: StatusCommandOptions): void {
   try {
     const dbPath = getDatabasePath();
 
-    // 2. Load all tracks from database
-    const tracks = lib.getAllTracks(dbPath);
+    // 2. Load tracks from database (filtered by default, all with --all flag)
+    let tracks = options.all
+      ? lib.getAllTracks(dbPath)
+      : lib.getTracksByStatus(dbPath, [...ACTIVE_STATUSES]);
 
-    // 3. Load all track-file associations
+    // 3. Always include root track for project context, even if filtered
+    if (!options.all) {
+      const rootTrack = lib.getRootTrack(dbPath);
+      if (rootTrack && !tracks.find((t) => t.id === rootTrack.id)) {
+        tracks = [rootTrack, ...tracks];
+      }
+    }
+
+    // 4. Load all track-file associations
     const fileMap = lib.getAllTrackFiles(dbPath);
 
-    // 4. Build tree structure with derived fields
+    // 5. Build tree structure with derived fields
     const tracksWithDetails = buildTrackTree(tracks, fileMap);
 
-    // 5. Output in requested format
+    // 6. Output in requested format
     if (options.json) {
       outputJson(tracksWithDetails);
     } else {

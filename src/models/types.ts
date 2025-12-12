@@ -68,6 +68,12 @@ export const VALID_STATUSES: readonly Status[] = [
 ] as const;
 
 /**
+ * Active status values (shown by default in status command).
+ * These are tracks that are not yet completed or abandoned.
+ */
+export const ACTIVE_STATUSES: readonly Status[] = ['planned', 'in_progress', 'blocked'] as const;
+
+/**
  * Check if a string is a valid status.
  */
 export function isValidStatus(value: string): value is Status {

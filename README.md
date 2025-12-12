@@ -117,14 +117,23 @@ track update abc12345 \
 
 **Default status:** `in_progress` if not specified
 
-### `track status [--json]`
+### `track status [--json] [-a|--all]`
 
-Display project tree with all tracks.
+Display project tree with tracks.
 
 ```bash
-track status        # Human-readable tree format
-track status --json # JSON output for AI agents
+track status            # Human-readable tree format (active tracks only)
+track status --json     # JSON output for AI agents (active tracks only)
+track status --all      # Show all tracks including done/superseded
+track status --json -a  # JSON with all tracks
 ```
+
+**Default Behavior:** Shows only "active" tracks (`planned`, `in_progress`, `blocked`) to reduce noise and context usage. Use `--all` to include `done` and `superseded` tracks.
+
+**Options:**
+
+- `--json` - Output as JSON
+- `-a, --all` - Show all tracks including done and superseded
 
 **Human Output Example:**
 
@@ -293,8 +302,11 @@ See [docs/mcp.md](docs/mcp.md) for complete MCP integration guide.
 ### Basic Session Pattern
 
 ```bash
-# At session start - resume context
-track status --json | jq '.tracks[] | select(.status == "in_progress")'
+# At session start - resume context (active tracks only by default)
+track status --json
+
+# View all tracks including completed ones
+track status --json --all
 
 # During work - create and update
 track new "Feature" --summary "Description" --next "First step"
@@ -305,6 +317,8 @@ track update <id> \
   --summary "COMPLETE summary of what exists, what works, what's left" \
   --next "SPECIFIC next step with file paths and context"
 ```
+
+**Note:** By default, `track status` shows only active tracks (`planned`, `in_progress`, `blocked`). This reduces context usage when working with AI agents. Use `--all` to see completed and superseded tracks.
 
 **Key Principle:** No history tracking means summaries must be comprehensive. Use the **Breadcrumb Pattern** for detailed, actionable next steps.
 
