@@ -33,7 +33,7 @@ export function statusCommand(options: StatusCommandOptions): void {
     // 2. Load tracks from database (filtered by default, all with --all flag)
     let tracks = options.all
       ? lib.getAllTracks(dbPath)
-      : lib.getTracksByStatus(dbPath, [...ACTIVE_STATUSES]);
+      : lib.getTracksByStatus(dbPath, ACTIVE_STATUSES);
 
     // 3. Always include root track for project context, even if filtered
     if (!options.all) {
@@ -116,9 +116,7 @@ function printTrack(
   const nodePrefix = prefixParts.join('') + (isLast ? TREE.LAST : TREE.BRANCH) + ' ';
   const detailsPrefix = prefixParts.join('') + (isLast ? TREE.SPACE : TREE.PIPE) + '  ';
 
-  console.log(
-    `${nodePrefix}[${colorKind(track.kind)}] ${track.id} - ${track.title}`
-  );
+  console.log(`${nodePrefix}[${colorKind(track.kind)}] ${track.id} - ${track.title}`);
 
   console.log(`${detailsPrefix}${formatLabel('summary:', track.summary)}`);
   console.log(`${detailsPrefix}${formatLabel('next:', track.next_prompt)}`);

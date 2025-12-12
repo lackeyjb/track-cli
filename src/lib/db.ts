@@ -251,7 +251,7 @@ export function getAllTracks(dbPath: string): Track[] {
  * @param statuses - Array of status values to filter by
  * @returns Array of tracks matching the given statuses
  */
-export function getTracksByStatus(dbPath: string, statuses: Status[]): Track[] {
+export function getTracksByStatus(dbPath: string, statuses: readonly Status[]): Track[] {
   return withDatabase(dbPath, (db) => {
     const placeholders = statuses.map(() => '?').join(', ');
     const stmt = db.prepare(`SELECT * FROM tracks WHERE status IN (${placeholders})`);

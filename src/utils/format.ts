@@ -11,6 +11,7 @@ export const STATUS_ICONS: Record<Status, string> = {
 
 export function colorStatus(status: Status): string {
   const icon = STATUS_ICONS[status];
+  const rawStatus = status;
   switch (status) {
     case 'in_progress':
       return pc.yellow(`${icon} ${status}`);
@@ -22,9 +23,8 @@ export function colorStatus(status: Status): string {
       return pc.cyan(`${icon} ${status}`);
     case 'superseded':
       return pc.dim(`${icon} ${status}`);
-    default:
-      return `${icon} ${status}`;
   }
+  return `${icon} ${rawStatus}`;
 }
 
 export function colorKind(kind: string): string {
@@ -50,4 +50,3 @@ export const TREE = {
 export function formatLabel(label: string, value: string, width = 8): string {
   return `${pc.dim(label.padEnd(width))} ${value}`;
 }
-
