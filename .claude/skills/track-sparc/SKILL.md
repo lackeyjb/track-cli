@@ -18,23 +18,39 @@ This skill enables autonomous planning and execution of complex software project
 
 ## Core Workflow
 
+### 0. Check Existing Tracks First (CRITICAL)
+
+**Before creating ANY new tracks**, always check for existing tracks:
+
+```bash
+track status --json
+```
+
+Look for:
+- **Existing super tracks** with `status: "planned"` that match the work to be done
+- **Existing feature tracks** that represent the specification for your task
+- If a track already exists for the feature you're implementing, **use it as the parent** for sub-tasks
+
+**IMPORTANT**: If there's already a super track or feature track that describes the work (e.g., "Auto-Refresh" with a summary describing the feature), add your implementation tasks as children of that track using `--parent <existing-id>`. Do NOT create a new parallel feature track.
+
 ### 1. Plan Ingestion
 
 When given a specification file:
 
-1. **Read and analyze** the markdown specification
-2. **Extract structure**:
-   - Project title → super track (`track init`)
-   - Major sections/phases → features (`track new` under root)
+1. **Check existing tracks** with `track status --json`
+2. **Read and analyze** the markdown specification
+3. **Extract structure**:
+   - Project title → super track (`track init`) **only if no project exists**
+   - Major sections/phases → features (`track new` under root) **only if not already tracked**
    - Bullet points → tasks (`track new --parent <feature>`)
    - Dependency keywords → `--blocks` relationships
 
-3. **Initialize tracking**:
+4. **Initialize tracking** (only if `.track/` doesn't exist):
    ```bash
    track init "Project Name"
    ```
 
-4. **Create hierarchical tracks** with dependencies between phases
+5. **Create hierarchical tracks** with dependencies between phases
 
 ### 2. SPARC Execution Per Feature
 
