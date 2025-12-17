@@ -20,6 +20,7 @@ const newTrackParentId = ref<string | null>(null);
 // Lifted state from TrackTree to persist across refreshes
 const statusFilters = ref<Set<Status>>(new Set(['planned', 'in_progress', 'blocked']));
 const expandedIds = ref<Set<string>>(new Set());
+const worktreeFilter = ref<string | null>(null);
 
 async function loadTracks() {
   try {
@@ -58,6 +59,7 @@ async function handleFormSubmit(data: {
   next_prompt: string;
   status: Status;
   parent_id?: string | null;
+  worktree?: string | null;
 }) {
   try {
     if (editingTrack.value) {
@@ -65,6 +67,7 @@ async function handleFormSubmit(data: {
         summary: data.summary,
         next_prompt: data.next_prompt,
         status: data.status,
+        worktree: data.worktree,
       };
       await updateTrack(editingTrack.value.id, params);
     } else {
@@ -74,6 +77,7 @@ async function handleFormSubmit(data: {
         next_prompt: data.next_prompt,
         status: data.status,
         parent_id: data.parent_id,
+        worktree: data.worktree,
       };
       await createTrack(params);
     }
@@ -125,10 +129,12 @@ onMounted(() => {
       :loading="loading"
       :status-filters="statusFilters"
       :expanded-ids="expandedIds"
+      :worktree-filter="worktreeFilter"
       @edit="openEditForm"
       @add-child="openCreateForm"
       @update:status-filters="statusFilters = $event"
       @update:expanded-ids="expandedIds = $event"
+      @update:worktree-filter="worktreeFilter = $event"
     />
 
     <!-- Form modal -->

@@ -8,6 +8,7 @@ const props = defineProps<{
   loading?: boolean;
   statusFilters: Set<Status>;
   expandedIds: Set<string>;
+  worktreeFilter: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -15,6 +16,7 @@ const emit = defineEmits<{
   addChild: [parentId: string | null];
   'update:statusFilters': [filters: Set<Status>];
   'update:expandedIds': [ids: Set<string>];
+  'update:worktreeFilter': [filter: string | null];
 }>();
 
 const allStatuses: { value: Status; label: string }[] = [
@@ -24,6 +26,14 @@ const allStatuses: { value: Status; label: string }[] = [
   { value: 'blocked', label: 'Blocked' },
   { value: 'superseded', label: 'Superseded' },
 ];
+
+const uniqueWorktrees = computed(() => {
+  const worktrees = new Set<string>();
+  props.tracks.forEach((t) => {
+    if (t.worktree) worktrees.add(t.worktree);
+  });
+  return Array.from(worktrees).sort();
+});
 
 function toggleStatus(status: Status) {
   const newFilters = new Set(props.statusFilters);
@@ -43,10 +53,21 @@ function selectActiveStatuses() {
   emit('update:statusFilters', new Set(['planned', 'in_progress', 'blocked']));
 }
 
-// Filter tracks by status
+// Filter tracks by status and worktree
 const filteredTracks = computed(() => {
-  if (props.statusFilters.size === 0) return props.tracks;
-  return props.tracks.filter((t) => props.statusFilters.has(t.status));
+  let result = props.tracks;
+
+  // Filter by status
+  if (props.statusFilters.size > 0) {
+    result = result.filter((t) => props.statusFilters.has(t.status));
+  }
+
+  // Filter by worktree
+  if (props.worktreeFilter) {
+    result = result.filter((t) => t.worktree === props.worktreeFilter);
+  }
+
+  return result;
 });
 
 // Get root tracks
@@ -132,6 +153,21 @@ function collapseAll() {
         >
           Show all
         </button>
+      </div>
+
+      <!-- Worktree filter -->
+      <div v-if="uniqueWorktrees.length > 0" class="flex items-center gap-2">
+        <span class="text-sm text-gray-600">Worktree:</span>
+        <select
+          :value="worktreeFilter ?? ''"
+          @change="emit('update:worktreeFilter', ($event.target as HTMLSelectElement).value || null)"
+          class="text-xs px-2 py-1 rounded border border-gray-200 bg-gray-50"
+        >
+          <option value="">All</option>
+          <option v-for="wt in uniqueWorktrees" :key="wt" :value="wt">
+            @{{ wt }}
+          </option>
+        </select>
       </div>
 
       <!-- Expand/collapse controls -->

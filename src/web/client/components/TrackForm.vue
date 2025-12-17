@@ -15,6 +15,7 @@ const emit = defineEmits<{
     next_prompt: string;
     status: Status;
     parent_id?: string | null;
+    worktree?: string | null;
   }];
   cancel: [];
 }>();
@@ -26,6 +27,7 @@ const summary = ref('');
 const nextPrompt = ref('');
 const status = ref<Status>('planned');
 const parentId = ref<string | null>(null);
+const worktree = ref('');
 
 // Available parents (exclude self and descendants when editing)
 const availableParents = computed(() => {
@@ -53,12 +55,14 @@ watch(
       nextPrompt.value = props.track.next_prompt;
       status.value = props.track.status;
       parentId.value = props.track.parent_id;
+      worktree.value = props.track.worktree ?? '';
     } else {
       title.value = '';
       summary.value = '';
       nextPrompt.value = '';
       status.value = 'planned';
       parentId.value = props.parentId ?? null;
+      worktree.value = '';
     }
   },
   { immediate: true }
@@ -71,10 +75,12 @@ function handleSubmit() {
     next_prompt: string;
     status: Status;
     parent_id?: string | null;
+    worktree?: string | null;
   } = {
     summary: summary.value,
     next_prompt: nextPrompt.value,
     status: status.value,
+    worktree: worktree.value || null,
   };
 
   if (!isEditing.value) {
@@ -155,6 +161,18 @@ function handleSubmit() {
             <option value="blocked">Blocked</option>
             <option value="superseded">Superseded</option>
           </select>
+        </div>
+
+        <!-- Worktree -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Worktree</label>
+          <input
+            v-model="worktree"
+            type="text"
+            placeholder="e.g. feature-auth"
+            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+          />
+          <p class="mt-1 text-xs text-gray-500">Git worktree name (optional)</p>
         </div>
 
         <!-- Actions -->
