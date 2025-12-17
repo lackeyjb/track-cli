@@ -12,7 +12,7 @@
     "track": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/mcp/data dist/mcp/",
     "dev": "tsc --watch",
     "mcp:start": "node dist/mcp/server.js",
     "mcp:dev": "npm run dev",
