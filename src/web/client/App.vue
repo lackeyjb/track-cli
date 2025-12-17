@@ -94,36 +94,30 @@ onMounted(() => {
       <button @click="error = null" class="float-right font-bold">&times;</button>
     </div>
 
-    <!-- Loading state -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="text-gray-500">Loading tracks...</div>
+    <!-- Action bar -->
+    <div class="mb-6 flex items-center gap-4">
+      <button
+        @click="openCreateForm(null)"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+      >
+        + New Track
+      </button>
+      <button
+        @click="loadTracks"
+        :disabled="loading"
+        class="text-gray-600 hover:text-gray-800 px-4 py-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
+      >
+        {{ loading ? 'Loading...' : 'Refresh' }}
+      </button>
     </div>
 
-    <!-- Main content -->
-    <div v-else>
-      <!-- Action bar -->
-      <div class="mb-6 flex items-center gap-4">
-        <button
-          @click="openCreateForm(null)"
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-        >
-          + New Track
-        </button>
-        <button
-          @click="loadTracks"
-          class="text-gray-600 hover:text-gray-800 px-4 py-2 hover:bg-gray-100 rounded transition-colors"
-        >
-          Refresh
-        </button>
-      </div>
-
-      <!-- Track tree -->
-      <TrackTree
-        :tracks="tracks"
-        @edit="openEditForm"
-        @add-child="openCreateForm"
-      />
-    </div>
+    <!-- Track tree (kept mounted to preserve filter/expanded state) -->
+    <TrackTree
+      :tracks="tracks"
+      :loading="loading"
+      @edit="openEditForm"
+      @add-child="openCreateForm"
+    />
 
     <!-- Form modal -->
     <TrackForm

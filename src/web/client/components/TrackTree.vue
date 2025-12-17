@@ -5,6 +5,7 @@ import TrackCard from './TrackCard.vue';
 
 const props = defineProps<{
   tracks: TrackWithDetails[];
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -98,7 +99,7 @@ function collapseAll() {
 </script>
 
 <template>
-  <div>
+  <div :class="{ 'opacity-50 pointer-events-none': loading }">
     <!-- Filters and controls -->
     <div class="mb-4 flex flex-wrap items-center gap-4">
       <!-- Status filters -->

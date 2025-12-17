@@ -5,16 +5,16 @@ import type { Status } from '../../lib/types.js';
 interface CreateTrackBody {
   title: string;
   parent_id?: string | null;
-  summary: string;
-  next_prompt: string;
+  summary?: string;
+  next_prompt?: string;
   status?: Status;
   worktree?: string | null;
   files?: string[];
 }
 
 interface UpdateTrackBody {
-  summary: string;
-  next_prompt: string;
+  summary?: string;
+  next_prompt?: string;
   status: Status;
   worktree?: string | null;
   files?: string[];
@@ -51,15 +51,15 @@ export function apiRoutes(manager: TrackManager): Hono {
   api.post('/tracks', async (c) => {
     const body = await c.req.json<CreateTrackBody>();
 
-    if (!body.title || !body.summary || !body.next_prompt) {
-      return c.json({ error: 'Missing required fields: title, summary, next_prompt' }, 400);
+    if (!body.title) {
+      return c.json({ error: 'Missing required field: title' }, 400);
     }
 
     const track = manager.createTrack({
       title: body.title,
       parent_id: body.parent_id ?? null,
-      summary: body.summary,
-      next_prompt: body.next_prompt,
+      summary: body.summary ?? '',
+      next_prompt: body.next_prompt ?? '',
       status: body.status,
       worktree: body.worktree ?? null,
       files: body.files,
@@ -73,17 +73,18 @@ export function apiRoutes(manager: TrackManager): Hono {
     const id = c.req.param('id');
     const body = await c.req.json<UpdateTrackBody>();
 
-    if (!manager.trackExists(id)) {
+    const existing = manager.getTrack(id);
+    if (!existing) {
       return c.json({ error: 'Track not found' }, 404);
     }
 
-    if (!body.summary || !body.next_prompt || !body.status) {
-      return c.json({ error: 'Missing required fields: summary, next_prompt, status' }, 400);
+    if (!body.status) {
+      return c.json({ error: 'Missing required field: status' }, 400);
     }
 
     manager.updateTrack(id, {
-      summary: body.summary,
-      next_prompt: body.next_prompt,
+      summary: body.summary ?? existing.summary,
+      next_prompt: body.next_prompt ?? existing.next_prompt,
       status: body.status,
       worktree: body.worktree,
       files: body.files,

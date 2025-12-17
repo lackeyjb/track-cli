@@ -28,16 +28,16 @@ export interface StatusResponse {
 export interface CreateTrackParams {
   title: string;
   parent_id?: string | null;
-  summary: string;
-  next_prompt: string;
+  summary?: string;
+  next_prompt?: string;
   status?: Status;
   worktree?: string | null;
   files?: string[];
 }
 
 export interface UpdateTrackParams {
-  summary: string;
-  next_prompt: string;
+  summary?: string;
+  next_prompt?: string;
   status: Status;
   worktree?: string | null;
   files?: string[];
