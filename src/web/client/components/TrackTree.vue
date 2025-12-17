@@ -1,23 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import type { TrackWithDetails, Status } from '../api';
 import TrackCard from './TrackCard.vue';
 
 const props = defineProps<{
   tracks: TrackWithDetails[];
   loading?: boolean;
+  statusFilters: Set<Status>;
+  expandedIds: Set<string>;
 }>();
 
 const emit = defineEmits<{
   edit: [track: TrackWithDetails];
   addChild: [parentId: string | null];
+  'update:statusFilters': [filters: Set<Status>];
+  'update:expandedIds': [ids: Set<string>];
 }>();
-
-// Expansion state
-const expandedIds = ref<Set<string>>(new Set());
-
-// Status filter
-const statusFilters = ref<Set<Status>>(new Set(['planned', 'in_progress', 'blocked']));
 
 const allStatuses: { value: Status; label: string }[] = [
   { value: 'planned', label: 'Planned' },
@@ -28,27 +26,27 @@ const allStatuses: { value: Status; label: string }[] = [
 ];
 
 function toggleStatus(status: Status) {
-  if (statusFilters.value.has(status)) {
-    statusFilters.value.delete(status);
+  const newFilters = new Set(props.statusFilters);
+  if (newFilters.has(status)) {
+    newFilters.delete(status);
   } else {
-    statusFilters.value.add(status);
+    newFilters.add(status);
   }
-  // Force reactivity
-  statusFilters.value = new Set(statusFilters.value);
+  emit('update:statusFilters', newFilters);
 }
 
 function selectAllStatuses() {
-  statusFilters.value = new Set(allStatuses.map((s) => s.value));
+  emit('update:statusFilters', new Set(allStatuses.map((s) => s.value)));
 }
 
 function selectActiveStatuses() {
-  statusFilters.value = new Set(['planned', 'in_progress', 'blocked']);
+  emit('update:statusFilters', new Set(['planned', 'in_progress', 'blocked']));
 }
 
 // Filter tracks by status
 const filteredTracks = computed(() => {
-  if (statusFilters.value.size === 0) return props.tracks;
-  return props.tracks.filter((t) => statusFilters.value.has(t.status));
+  if (props.statusFilters.size === 0) return props.tracks;
+  return props.tracks.filter((t) => props.statusFilters.has(t.status));
 });
 
 // Get root tracks
@@ -68,17 +66,17 @@ function hasChildren(trackId: string): boolean {
 
 // Toggle expand/collapse
 function toggleExpand(trackId: string) {
-  if (expandedIds.value.has(trackId)) {
-    expandedIds.value.delete(trackId);
+  const newIds = new Set(props.expandedIds);
+  if (newIds.has(trackId)) {
+    newIds.delete(trackId);
   } else {
-    expandedIds.value.add(trackId);
+    newIds.add(trackId);
   }
-  // Force reactivity
-  expandedIds.value = new Set(expandedIds.value);
+  emit('update:expandedIds', newIds);
 }
 
 function isExpanded(trackId: string): boolean {
-  return expandedIds.value.has(trackId);
+  return props.expandedIds.has(trackId);
 }
 
 // Expand all
@@ -89,12 +87,12 @@ function expandAll() {
       ids.add(t.id);
     }
   });
-  expandedIds.value = ids;
+  emit('update:expandedIds', ids);
 }
 
 // Collapse all
 function collapseAll() {
-  expandedIds.value = new Set();
+  emit('update:expandedIds', new Set());
 }
 </script>
 

@@ -13,6 +13,10 @@ const showForm = ref(false);
 const editingTrack = ref<TrackWithDetails | null>(null);
 const newTrackParentId = ref<string | null>(null);
 
+// Lifted state from TrackTree to persist across refreshes
+const statusFilters = ref<Set<Status>>(new Set(['planned', 'in_progress', 'blocked']));
+const expandedIds = ref<Set<string>>(new Set());
+
 async function loadTracks() {
   try {
     loading.value = true;
@@ -111,12 +115,16 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Track tree (kept mounted to preserve filter/expanded state) -->
+    <!-- Track tree (state lifted to App.vue to persist across refreshes) -->
     <TrackTree
       :tracks="tracks"
       :loading="loading"
+      :status-filters="statusFilters"
+      :expanded-ids="expandedIds"
       @edit="openEditForm"
       @add-child="openCreateForm"
+      @update:status-filters="statusFilters = $event"
+      @update:expanded-ids="expandedIds = $event"
     />
 
     <!-- Form modal -->
