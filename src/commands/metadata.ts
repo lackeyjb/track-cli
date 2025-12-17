@@ -87,11 +87,20 @@ export const commandMetadata: CommandMetadata[] = [
         required: false,
         cliFlag: '--worktree <name>',
       },
+      {
+        name: 'blocks',
+        description: 'Track ID(s) this will block (repeatable)',
+        type: 'string[]',
+        required: false,
+        collect: true,
+        cliFlag: '--blocks <track-id>',
+      },
     ],
     args: [{ name: 'title', required: true, description: 'Track title' }],
     usage:
-      'track new "<title>" [--parent <track-id>] [--summary "..."] [--next "..."] [--file <path>]... [--worktree <name>]',
-    example: 'track new "Add login screen" --parent ROOT123 --summary "UI stub" --next "Hook API"',
+      'track new "<title>" [--parent <track-id>] [--summary "..."] [--next "..."] [--file <path>]... [--worktree <name>] [--blocks <track-id>]...',
+    example:
+      'track new "Add login screen" --parent ROOT123 --summary "UI stub" --next "Hook API" --blocks DASH456',
   },
   {
     name: 'update',
@@ -134,11 +143,27 @@ export const commandMetadata: CommandMetadata[] = [
         required: false,
         cliFlag: '--worktree <name>',
       },
+      {
+        name: 'blocks',
+        description: 'Add dependency: this track blocks given track (repeatable)',
+        type: 'string[]',
+        required: false,
+        collect: true,
+        cliFlag: '--blocks <track-id>',
+      },
+      {
+        name: 'unblocks',
+        description: 'Remove dependency on given track (repeatable)',
+        type: 'string[]',
+        required: false,
+        collect: true,
+        cliFlag: '--unblocks <track-id>',
+      },
     ],
     args: [{ name: 'track-id', required: true, description: 'Track ID to update' }],
     usage:
-      'track update <track-id> --summary "..." --next "..." [--status <status>] [--file <file-path>]... [--worktree <name>]',
-    example: 'track update ABC123 --summary "API wired" --next "Write tests" --status in_progress',
+      'track update <track-id> --summary "..." --next "..." [--status <status>] [--file <file-path>]... [--worktree <name>] [--blocks <track-id>]... [--unblocks <track-id>]...',
+    example: 'track update ABC123 --summary "API wired" --next "Write tests" --status done',
   },
   {
     name: 'status',

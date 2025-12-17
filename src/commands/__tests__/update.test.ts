@@ -401,6 +401,382 @@ describe('update command', () => {
     });
   });
 
+  describe('dependency support', () => {
+    it('should add dependency with --blocks', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create two tracks
+        newCommand('Track A', { summary: 'A', next: 'A' });
+        const trackAId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Track B', { summary: 'B', next: 'B' });
+        const trackBId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Update Track A to block Track B
+        updateCommand(trackAId, {
+          summary: 'Updated A',
+          next: 'Next A',
+          blocks: [trackBId],
+        });
+
+        const logs = consoleMock.getLogs();
+        expect(logs.some((log) => log.includes(`Now blocks: ${trackBId}`))).toBe(true);
+
+        // Verify dependency was created
+        const blockers = lib.getBlockersOf(getDatabasePath(), trackBId);
+        expect(blockers).toContain(trackAId);
+      });
+    });
+
+    it('should remove dependency with --unblocks', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocked track
+        newCommand('Blocked Track', { summary: 'Blocked', next: 'Waiting' });
+        const blockedId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocker track that blocks the first
+        newCommand('Blocker Track', { summary: 'Blocker', next: 'Do first', blocks: [blockedId] });
+        const blockerId = extractTrackId(consoleMock.getLogs());
+
+        // Verify dependency exists
+        expect(lib.getBlockersOf(getDatabasePath(), blockedId)).toContain(blockerId);
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Remove the dependency
+        updateCommand(blockerId, {
+          summary: 'Updated Blocker',
+          next: 'Done',
+          unblocks: [blockedId],
+        });
+
+        const logs = consoleMock.getLogs();
+        expect(logs.some((log) => log.includes(`No longer blocks: ${blockedId}`))).toBe(true);
+
+        // Verify dependency was removed
+        expect(lib.getBlockersOf(getDatabasePath(), blockedId)).not.toContain(blockerId);
+      });
+    });
+
+    it('should auto-set blocked track to "blocked" when adding dependency', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create two tracks (both planned)
+        newCommand('Track A', { summary: 'A', next: 'A' });
+        const trackAId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Track B', { summary: 'B', next: 'B' });
+        const trackBId = extractTrackId(consoleMock.getLogs());
+
+        // Verify both are planned
+        expect(lib.getTrack(getDatabasePath(), trackAId)?.status).toBe('planned');
+        expect(lib.getTrack(getDatabasePath(), trackBId)?.status).toBe('planned');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // A blocks B
+        updateCommand(trackAId, {
+          summary: 'Updated A',
+          next: 'Next A',
+          blocks: [trackBId],
+        });
+
+        // Verify B is now blocked
+        expect(lib.getTrack(getDatabasePath(), trackBId)?.status).toBe('blocked');
+      });
+    });
+
+    it('should auto-set blocked track to "planned" when removing last blocker', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocked track
+        newCommand('Blocked Track', { summary: 'Blocked', next: 'Waiting' });
+        const blockedId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocker
+        newCommand('Blocker', { summary: 'Blocker', next: 'Do first', blocks: [blockedId] });
+        const blockerId = extractTrackId(consoleMock.getLogs());
+
+        // Verify track is blocked
+        expect(lib.getTrack(getDatabasePath(), blockedId)?.status).toBe('blocked');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Remove blocker
+        updateCommand(blockerId, {
+          summary: 'Done',
+          next: '',
+          unblocks: [blockedId],
+        });
+
+        // Verify track is now planned
+        expect(lib.getTrack(getDatabasePath(), blockedId)?.status).toBe('planned');
+      });
+    });
+
+    it('should cascade unblock when blocker marked "done"', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocked track
+        newCommand('Blocked Track', { summary: 'Blocked', next: 'Waiting' });
+        const blockedId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocker
+        newCommand('Blocker', { summary: 'Blocker', next: 'Do first', blocks: [blockedId] });
+        const blockerId = extractTrackId(consoleMock.getLogs());
+
+        // Verify track is blocked
+        expect(lib.getTrack(getDatabasePath(), blockedId)?.status).toBe('blocked');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Mark blocker as done
+        updateCommand(blockerId, {
+          summary: 'Completed',
+          next: '',
+          status: 'done',
+        });
+
+        const logs = consoleMock.getLogs();
+        expect(logs.some((log) => log.includes(`Unblocked tracks: ${blockedId}`))).toBe(true);
+
+        // Verify blocked track is now planned
+        expect(lib.getTrack(getDatabasePath(), blockedId)?.status).toBe('planned');
+      });
+    });
+
+    it('should not cascade unblock when not all blockers are done', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocked track
+        newCommand('Blocked Track', { summary: 'Blocked', next: 'Waiting' });
+        const blockedId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create first blocker
+        newCommand('Blocker 1', { summary: 'Blocker 1', next: 'Do first', blocks: [blockedId] });
+        const blocker1Id = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create second blocker
+        newCommand('Blocker 2', { summary: 'Blocker 2', next: 'Also do', blocks: [blockedId] });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Mark first blocker as done
+        updateCommand(blocker1Id, {
+          summary: 'Completed',
+          next: '',
+          status: 'done',
+        });
+
+        // Verify blocked track is still blocked (blocker 2 is not done)
+        expect(lib.getTrack(getDatabasePath(), blockedId)?.status).toBe('blocked');
+      });
+    });
+
+    it('should error when --blocks creates a cycle', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create two tracks
+        newCommand('Track A', { summary: 'A', next: 'A' });
+        const trackAId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Track B', { summary: 'B', next: 'B' });
+        const trackBId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // A blocks B
+        updateCommand(trackAId, {
+          summary: 'Updated A',
+          next: 'Next A',
+          blocks: [trackBId],
+        });
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // B blocks A would create a cycle
+        try {
+          updateCommand(trackBId, {
+            summary: 'Updated B',
+            next: 'Next B',
+            blocks: [trackAId],
+          });
+        } catch {
+          // Expected
+        }
+
+        expect(exitMock.wasExitCalled()).toBe(true);
+        expect(exitMock.getExitCode()).toBe(1);
+
+        const errors = consoleMock.getErrors();
+        expect(errors.some((err) => err.includes('would create a cycle'))).toBe(true);
+      });
+    });
+
+    it('should preserve manually blocked status when unblocking', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create a track and manually set it to blocked
+        newCommand('Manually Blocked', { summary: 'Blocked', next: 'Waiting' });
+        const trackId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Manually set to blocked
+        updateCommand(trackId, {
+          summary: 'Blocked',
+          next: 'Waiting for external',
+          status: 'blocked',
+        });
+
+        expect(lib.getTrack(getDatabasePath(), trackId)?.status).toBe('blocked');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create another track that "blocks" the first (but it's already blocked manually)
+        newCommand('New Blocker', { summary: 'Blocker', next: 'Do this', blocks: [trackId] });
+        const blockerId = extractTrackId(consoleMock.getLogs());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Mark the blocker as done
+        updateCommand(blockerId, {
+          summary: 'Done',
+          next: '',
+          status: 'done',
+        });
+
+        // The track should become planned because it was dependency-blocked
+        // (it has blockers and all blockers are done)
+        expect(lib.getTrack(getDatabasePath(), trackId)?.status).toBe('planned');
+      });
+    });
+  });
+
   describe('worktree support', () => {
     it('should update worktree when --worktree is provided', async () => {
       await withTempDir(() => {

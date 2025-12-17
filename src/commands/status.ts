@@ -68,10 +68,13 @@ export function statusCommand(options: StatusCommandOptions): void {
     // 6. Load all track-file associations
     const fileMap = lib.getAllTrackFiles(dbPath);
 
-    // 7. Build tree structure with derived fields
-    const tracksWithDetails = buildTrackTree(tracks, fileMap);
+    // 7. Load all dependencies
+    const dependencyMap = lib.getAllDependencies(dbPath);
 
-    // 8. Output in requested format
+    // 8. Build tree structure with derived fields
+    const tracksWithDetails = buildTrackTree(tracks, fileMap, dependencyMap);
+
+    // 9. Output in requested format
     if (options.json) {
       outputJson(tracksWithDetails);
     } else {
@@ -163,6 +166,16 @@ function printTrack(
 
   if (track.files.length > 0) {
     console.log(`${detailsPrefix}${formatLabel('files:', track.files.join(', '), labelOptions)}`);
+  }
+
+  if (track.blocks.length > 0) {
+    console.log(`${detailsPrefix}${formatLabel('blocks:', track.blocks.join(', '), labelOptions)}`);
+  }
+
+  if (track.blocked_by.length > 0) {
+    console.log(
+      `${detailsPrefix}${formatLabel('blocked by:', track.blocked_by.join(', '), labelOptions)}`
+    );
   }
 
   const children = track.children.filter(Boolean);

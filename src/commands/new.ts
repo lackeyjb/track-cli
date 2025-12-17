@@ -13,6 +13,7 @@ export interface NewCommandOptions {
   next: string;
   file?: string[];
   worktree?: string;
+  blocks?: string[];
 }
 
 /**
@@ -100,7 +101,43 @@ export function newCommand(title: string, options: NewCommandOptions): void {
       lib.addTrackFiles(dbPath, trackId, options.file);
     }
 
-    // 10. Success message
+    // 10. Handle --blocks dependencies
+    const blockedTracks: string[] = [];
+    if (options.blocks && options.blocks.length > 0) {
+      for (const blockedId of options.blocks) {
+        // Validate blocked track exists
+        if (!lib.trackExists(dbPath, blockedId)) {
+          console.error(`Error: Unknown track id: ${blockedId}`);
+          console.error('The specified blocked track does not exist.');
+          process.exit(1);
+        }
+
+        // Check for cycles (new track blocking blockedId)
+        if (lib.wouldCreateCycle(dbPath, trackId, blockedId)) {
+          console.error(`Error: Adding dependency would create a cycle.`);
+          console.error(`Track ${trackId} cannot block ${blockedId}.`);
+          process.exit(1);
+        }
+
+        // Create dependency record
+        lib.addDependency(dbPath, trackId, blockedId);
+
+        // Auto-set blocked track to "blocked" if it's "planned"
+        const blockedTrack = lib.getTrack(dbPath, blockedId);
+        if (blockedTrack && blockedTrack.status === 'planned') {
+          lib.updateTrack(dbPath, blockedId, {
+            summary: blockedTrack.summary,
+            next_prompt: blockedTrack.next_prompt,
+            status: 'blocked',
+            updated_at: getCurrentTimestamp(),
+          });
+        }
+
+        blockedTracks.push(blockedId);
+      }
+    }
+
+    // 11. Success message
     console.log(`Created track: ${title}`);
     console.log(`Track ID: ${trackId}`);
     console.log(`Parent: ${parentId}`);
@@ -109,6 +146,9 @@ export function newCommand(title: string, options: NewCommandOptions): void {
     }
     if (options.file && options.file.length > 0) {
       console.log(`Files: ${options.file.length} file(s) associated`);
+    }
+    if (blockedTracks.length > 0) {
+      console.log(`Blocks: ${blockedTracks.join(', ')}`);
     }
   } catch (error) {
     console.error('Error: Failed to create track.');

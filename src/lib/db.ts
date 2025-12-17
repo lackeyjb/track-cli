@@ -71,6 +71,34 @@ CREATE INDEX idx_tracks_worktree ON tracks(worktree);
 `;
 
 /**
+ * Schema for the track_dependencies table.
+ * Stores blocking relationships between tracks.
+ */
+const CREATE_DEPENDENCIES_TABLE = `
+CREATE TABLE track_dependencies (
+  blocking_track_id TEXT NOT NULL,
+  blocked_track_id TEXT NOT NULL,
+  PRIMARY KEY (blocking_track_id, blocked_track_id),
+  FOREIGN KEY (blocking_track_id) REFERENCES tracks(id),
+  FOREIGN KEY (blocked_track_id) REFERENCES tracks(id)
+);
+`;
+
+/**
+ * Index on blocking_track_id for efficient lookup of what a track blocks.
+ */
+const CREATE_DEPENDENCIES_BLOCKING_INDEX = `
+CREATE INDEX idx_dependencies_blocking ON track_dependencies(blocking_track_id);
+`;
+
+/**
+ * Index on blocked_track_id for efficient lookup of what blocks a track.
+ */
+const CREATE_DEPENDENCIES_BLOCKED_INDEX = `
+CREATE INDEX idx_dependencies_blocked ON track_dependencies(blocked_track_id);
+`;
+
+/**
  * Helper function to execute a database operation with proper connection handling.
  * Ensures foreign keys are enabled and the connection is properly closed.
  */
@@ -109,24 +137,29 @@ export function initializeDatabase(dbPath: string): void {
     // Create schema
     db.exec(CREATE_TRACKS_TABLE);
     db.exec(CREATE_TRACK_FILES_TABLE);
+    db.exec(CREATE_DEPENDENCIES_TABLE);
     db.exec(CREATE_PARENT_INDEX);
     db.exec(CREATE_STATUS_INDEX);
     db.exec(CREATE_FILES_INDEX);
     db.exec(CREATE_WORKTREE_INDEX);
+    db.exec(CREATE_DEPENDENCIES_BLOCKING_INDEX);
+    db.exec(CREATE_DEPENDENCIES_BLOCKED_INDEX);
   } finally {
     db.close();
   }
 }
 
 /**
- * Migrate an existing database to add the worktree column if it doesn't exist.
- * This is safe to call on databases that already have the column.
+ * Migrate an existing database to add the worktree column if it doesn't exist,
+ * and add the track_dependencies table if it doesn't exist.
+ * This is safe to call on databases that already have these structures.
  *
  * @param dbPath - Path to the database file
  */
 export function migrateDatabase(dbPath: string): void {
   const db = new Database(dbPath);
   try {
+    // Migrate worktree column
     const columns = db.pragma('table_info(tracks)') as Array<{ name: string }>;
     const hasWorktree = columns.some((col) => col.name === 'worktree');
     if (!hasWorktree) {
@@ -137,6 +170,17 @@ export function migrateDatabase(dbPath: string): void {
       if (!hasWorktreeIndex) {
         db.exec(CREATE_WORKTREE_INDEX);
       }
+    }
+
+    // Migrate track_dependencies table
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{
+      name: string;
+    }>;
+    const hasDependencies = tables.some((t) => t.name === 'track_dependencies');
+    if (!hasDependencies) {
+      db.exec(CREATE_DEPENDENCIES_TABLE);
+      db.exec(CREATE_DEPENDENCIES_BLOCKING_INDEX);
+      db.exec(CREATE_DEPENDENCIES_BLOCKED_INDEX);
     }
   } finally {
     db.close();
@@ -361,5 +405,192 @@ export function getTracksByStatusAndWorktree(
       `SELECT * FROM tracks WHERE status IN (${placeholders}) AND worktree = ?`
     );
     return stmt.all(...statuses, worktree) as Track[];
+  });
+}
+
+// ============================================================================
+// Dependency Management Functions
+// ============================================================================
+
+/**
+ * Check if adding a dependency would create a cycle.
+ * Uses DFS from blockedId to see if it can reach blockingId.
+ *
+ * @param dbPath - Path to the database file
+ * @param blockingId - The track that would block
+ * @param blockedId - The track that would be blocked
+ * @returns true if adding this dependency would create a cycle
+ */
+export function wouldCreateCycle(dbPath: string, blockingId: string, blockedId: string): boolean {
+  return withDatabase(dbPath, (db) => {
+    // If adding blockingId -> blockedId, check if blockedId can reach blockingId
+    // DFS: starting from blockedId, follow "blocks" edges (what does blockedId block?)
+    const visited = new Set<string>();
+    const stack = [blockedId];
+
+    const getBlockedByStmt = db.prepare(
+      'SELECT blocked_track_id FROM track_dependencies WHERE blocking_track_id = ?'
+    );
+
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (current === blockingId) return true; // Cycle found
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      // Get all tracks that 'current' blocks
+      const blocked = getBlockedByStmt.all(current) as Array<{ blocked_track_id: string }>;
+      for (const row of blocked) {
+        stack.push(row.blocked_track_id);
+      }
+    }
+    return false;
+  });
+}
+
+/**
+ * Add a blocking dependency between two tracks.
+ *
+ * @param dbPath - Path to the database file
+ * @param blockingId - The track that blocks
+ * @param blockedId - The track that is blocked
+ * @throws Error if adding would create a cycle or tracks don't exist
+ */
+export function addDependency(dbPath: string, blockingId: string, blockedId: string): void {
+  withDatabase(dbPath, (db) => {
+    const stmt = db.prepare(`
+      INSERT OR IGNORE INTO track_dependencies (blocking_track_id, blocked_track_id)
+      VALUES (?, ?)
+    `);
+    stmt.run(blockingId, blockedId);
+  });
+}
+
+/**
+ * Remove a blocking dependency between two tracks.
+ *
+ * @param dbPath - Path to the database file
+ * @param blockingId - The track that blocks
+ * @param blockedId - The track that is blocked
+ */
+export function removeDependency(dbPath: string, blockingId: string, blockedId: string): void {
+  withDatabase(dbPath, (db) => {
+    const stmt = db.prepare(`
+      DELETE FROM track_dependencies
+      WHERE blocking_track_id = ? AND blocked_track_id = ?
+    `);
+    stmt.run(blockingId, blockedId);
+  });
+}
+
+/**
+ * Get all tracks that block a given track.
+ *
+ * @param dbPath - Path to the database file
+ * @param trackId - The track to check
+ * @returns Array of track IDs that block the given track
+ */
+export function getBlockersOf(dbPath: string, trackId: string): string[] {
+  return withDatabase(dbPath, (db) => {
+    const stmt = db.prepare(
+      'SELECT blocking_track_id FROM track_dependencies WHERE blocked_track_id = ?'
+    );
+    const rows = stmt.all(trackId) as Array<{ blocking_track_id: string }>;
+    return rows.map((row) => row.blocking_track_id);
+  });
+}
+
+/**
+ * Get all tracks that a given track blocks.
+ *
+ * @param dbPath - Path to the database file
+ * @param trackId - The track to check
+ * @returns Array of track IDs that are blocked by the given track
+ */
+export function getBlockedBy(dbPath: string, trackId: string): string[] {
+  return withDatabase(dbPath, (db) => {
+    const stmt = db.prepare(
+      'SELECT blocked_track_id FROM track_dependencies WHERE blocking_track_id = ?'
+    );
+    const rows = stmt.all(trackId) as Array<{ blocked_track_id: string }>;
+    return rows.map((row) => row.blocked_track_id);
+  });
+}
+
+/**
+ * Check if all blockers of a track are done.
+ *
+ * @param dbPath - Path to the database file
+ * @param trackId - The track to check
+ * @returns true if all blocking tracks have status 'done', false otherwise
+ */
+export function areAllBlockersDone(dbPath: string, trackId: string): boolean {
+  return withDatabase(dbPath, (db) => {
+    // Get all blocking tracks and check if they're all done
+    const stmt = db.prepare(`
+      SELECT t.status
+      FROM track_dependencies d
+      JOIN tracks t ON d.blocking_track_id = t.id
+      WHERE d.blocked_track_id = ?
+    `);
+    const rows = stmt.all(trackId) as Array<{ status: string }>;
+
+    // If no blockers, return true
+    if (rows.length === 0) return true;
+
+    // Check if all are done
+    return rows.every((row) => row.status === 'done');
+  });
+}
+
+/**
+ * Check if a track has any dependency records (blockers).
+ *
+ * @param dbPath - Path to the database file
+ * @param trackId - The track to check
+ * @returns true if the track has at least one blocker
+ */
+export function hasBlockers(dbPath: string, trackId: string): boolean {
+  return withDatabase(dbPath, (db) => {
+    const stmt = db.prepare('SELECT 1 FROM track_dependencies WHERE blocked_track_id = ? LIMIT 1');
+    const result = stmt.get(trackId);
+    return result !== undefined;
+  });
+}
+
+/**
+ * Get all dependencies as a map for efficient lookup.
+ *
+ * @param dbPath - Path to the database file
+ * @returns Map of track IDs to their blocks and blocked_by arrays
+ */
+export function getAllDependencies(
+  dbPath: string
+): Map<string, { blocks: string[]; blocked_by: string[] }> {
+  return withDatabase(dbPath, (db) => {
+    const stmt = db.prepare('SELECT blocking_track_id, blocked_track_id FROM track_dependencies');
+    const rows = stmt.all() as Array<{ blocking_track_id: string; blocked_track_id: string }>;
+
+    const dependencyMap = new Map<string, { blocks: string[]; blocked_by: string[] }>();
+
+    // Helper to ensure entry exists
+    const ensureEntry = (id: string) => {
+      if (!dependencyMap.has(id)) {
+        dependencyMap.set(id, { blocks: [], blocked_by: [] });
+      }
+      return dependencyMap.get(id)!;
+    };
+
+    for (const row of rows) {
+      // The blocking track blocks the blocked track
+      const blockingEntry = ensureEntry(row.blocking_track_id);
+      blockingEntry.blocks.push(row.blocked_track_id);
+
+      // The blocked track is blocked by the blocking track
+      const blockedEntry = ensureEntry(row.blocked_track_id);
+      blockedEntry.blocked_by.push(row.blocking_track_id);
+    }
+
+    return dependencyMap;
   });
 }

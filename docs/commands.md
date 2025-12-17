@@ -131,6 +131,12 @@ track new "<title>" [options]
   - No validation that file exists
   - Example: `--file src/api.ts --file src/types.ts`
 
+- `--blocks <track-id>` - Create blocking dependency (optional, repeatable)
+  - This track will block the specified track
+  - Blocked track's status auto-changes to "blocked" if currently "planned"
+  - Cycles are not allowed (error if dependency would create a cycle)
+  - Example: `--blocks def67890 --blocks ghi11111`
+
 ### Examples
 
 **Minimal (defaults to root parent):**
@@ -165,6 +171,20 @@ track new "Implement User Profile Page" \
   --summary "User story #123: As a user, I want to view and edit my profile" \
   --next "Design profile form layout and fields" \
   --file src/pages/Profile.tsx
+```
+
+**With blocking dependency:**
+```bash
+# Create a prerequisite track (e.g., database schema)
+track new "Database Schema" \
+  --summary "Need to design user tables" \
+  --next "Create migration files"
+
+# Create a dependent track that blocks on the prerequisite
+track new "User API Endpoints" \
+  --summary "REST API for user CRUD operations" \
+  --next "Waiting on database schema first" \
+  --blocks <database-schema-id>
 ```
 
 ### Output
@@ -253,6 +273,22 @@ track update <track-id> [options]
   - Idempotent: adding same file twice won't create duplicate
   - Appends to existing file associations (cannot remove)
 
+- `--blocks <track-id>` - Add blocking dependency (optional, repeatable)
+  - This track will block the specified track
+  - Blocked track's status auto-changes to "blocked" if currently "planned"
+  - Cycles are not allowed (error if dependency would create a cycle)
+
+- `--unblocks <track-id>` - Remove blocking dependency (optional, repeatable)
+  - Removes the blocking relationship from this track to the specified track
+  - If unblocked track has no remaining blockers and status is "blocked", auto-changes to "planned"
+
+### Status Cascade Behavior
+
+When a track is marked as `done`:
+- All tracks that this track blocks are checked
+- If a blocked track has all its blockers now done, its status auto-changes to "planned"
+- This allows work to resume on tracks that were waiting for prerequisites
+
 ### Examples
 
 **Update status only:**
@@ -297,6 +333,35 @@ track update abc12345 \
   --summary "Implementation blocked - waiting for API credentials from ops team" \
   --next "Once creds received, configure Stripe SDK and test connection" \
   --status blocked
+```
+
+**Add blocking dependency:**
+```bash
+# Make this track block another track
+track update abc12345 \
+  --summary "This needs to finish first" \
+  --next "Complete core implementation" \
+  --blocks def67890
+```
+
+**Remove blocking dependency:**
+```bash
+# Remove this track as a blocker
+track update abc12345 \
+  --summary "Decided these can be done in parallel" \
+  --next "Continue work" \
+  --unblocks def67890
+```
+
+**Complete prerequisite (cascade unblock):**
+```bash
+# When this track is marked done, any tracks it blocks
+# will be automatically unblocked (if all their blockers are done)
+track update abc12345 \
+  --summary "Database schema complete" \
+  --next "" \
+  --status done
+# Output includes: "Unblocked tracks: def67890" if def67890 was waiting on this
 ```
 
 ### Output
@@ -476,6 +541,9 @@ My Web App (abc12345) [in_progress]
     status: "planned"|"in_progress"|"done"|"blocked"|"superseded"
     kind: "super"|"feature"|"task"  // Derived kind
     files: string[]         // Associated file paths
+    children: string[]      // Child track IDs
+    blocks: string[]        // Track IDs this track blocks
+    blocked_by: string[]    // Track IDs blocking this track
   }>
 }
 ```
@@ -795,6 +863,18 @@ Command-line options take precedence over environment variables.
 **Cause:** Provided status value is not one of the five valid values.
 
 **Solution:** Use one of: `planned`, `in_progress`, `done`, `blocked`, `superseded`.
+
+### "Would create a cycle"
+
+**Error:**
+```
+✗ Error: Adding dependency would create a cycle.
+  Track abc12345 cannot block def67890.
+```
+
+**Cause:** The blocking dependency would create a circular dependency chain.
+
+**Solution:** Review your dependency graph. Track A cannot block Track B if Track B (directly or indirectly) already blocks Track A.
 
 ---
 

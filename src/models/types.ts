@@ -31,6 +31,8 @@ export interface TrackWithDetails extends Track {
   kind: Kind;
   files: string[];
   children: string[]; // Array of child track IDs
+  blocks: string[]; // Array of track IDs this track blocks
+  blocked_by: string[]; // Array of track IDs blocking this track
 }
 
 /**

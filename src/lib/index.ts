@@ -182,14 +182,15 @@ export class TrackManager {
 
   /**
    * Get the complete status of the project.
-   * Returns all tracks with derived fields (kind, files, children).
+   * Returns all tracks with derived fields (kind, files, children, blocks, blocked_by).
    *
    * @returns Project status with track tree
    */
   getStatus(): { tracks: db.TrackWithDetails[] } {
     const tracks = db.getAllTracks(this.dbPath);
     const fileMap = db.getAllTrackFiles(this.dbPath);
-    const tracksWithDetails = buildTrackTree(tracks, fileMap);
+    const dependencyMap = db.getAllDependencies(this.dbPath);
+    const tracksWithDetails = buildTrackTree(tracks, fileMap, dependencyMap);
 
     return { tracks: tracksWithDetails };
   }
@@ -212,6 +213,79 @@ export class TrackManager {
   addFiles(trackId: string, filePaths: string[]): void {
     db.addTrackFiles(this.dbPath, trackId, filePaths);
   }
+
+  /**
+   * Add a blocking dependency between tracks.
+   * The blocking track will block the blocked track.
+   *
+   * @param blockingId - The track that blocks
+   * @param blockedId - The track that is blocked
+   * @throws Error if tracks don't exist or would create a cycle
+   */
+  addDependency(blockingId: string, blockedId: string): void {
+    db.addDependency(this.dbPath, blockingId, blockedId);
+  }
+
+  /**
+   * Remove a blocking dependency between tracks.
+   *
+   * @param blockingId - The track that blocks
+   * @param blockedId - The track that is blocked
+   */
+  removeDependency(blockingId: string, blockedId: string): void {
+    db.removeDependency(this.dbPath, blockingId, blockedId);
+  }
+
+  /**
+   * Check if adding a dependency would create a cycle.
+   *
+   * @param blockingId - The track that would block
+   * @param blockedId - The track that would be blocked
+   * @returns true if a cycle would be created
+   */
+  wouldCreateCycle(blockingId: string, blockedId: string): boolean {
+    return db.wouldCreateCycle(this.dbPath, blockingId, blockedId);
+  }
+
+  /**
+   * Get all tracks that block a given track.
+   *
+   * @param trackId - The track to check
+   * @returns Array of blocking track IDs
+   */
+  getBlockersOf(trackId: string): string[] {
+    return db.getBlockersOf(this.dbPath, trackId);
+  }
+
+  /**
+   * Get all tracks that a given track blocks.
+   *
+   * @param trackId - The track to check
+   * @returns Array of blocked track IDs
+   */
+  getBlockedBy(trackId: string): string[] {
+    return db.getBlockedBy(this.dbPath, trackId);
+  }
+
+  /**
+   * Check if all blockers of a track are done.
+   *
+   * @param trackId - The track to check
+   * @returns true if all blockers are done
+   */
+  areAllBlockersDone(trackId: string): boolean {
+    return db.areAllBlockersDone(this.dbPath, trackId);
+  }
+
+  /**
+   * Check if a track has any blockers.
+   *
+   * @param trackId - The track to check
+   * @returns true if the track has blockers
+   */
+  hasBlockers(trackId: string): boolean {
+    return db.hasBlockers(this.dbPath, trackId);
+  }
 }
 
 // Re-export database functions for advanced use cases
@@ -221,4 +295,12 @@ export {
   updateTrack,
   getAllTracks,
   getAllTrackFiles,
+  getAllDependencies,
+  addDependency,
+  removeDependency,
+  wouldCreateCycle,
+  getBlockersOf,
+  getBlockedBy,
+  areAllBlockersDone,
+  hasBlockers,
 } from './db.js';

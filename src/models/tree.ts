@@ -6,11 +6,13 @@ import type { Track, TrackWithDetails, Kind } from './types.js';
  *
  * @param tracks - All tracks from the database
  * @param fileMap - Map of track IDs to file paths
- * @returns Array of tracks with derived fields (kind, files, children)
+ * @param dependencyMap - Map of track IDs to their blocks/blocked_by arrays
+ * @returns Array of tracks with derived fields (kind, files, children, blocks, blocked_by)
  */
 export function buildTrackTree(
   tracks: Track[],
-  fileMap: Map<string, string[]>
+  fileMap: Map<string, string[]>,
+  dependencyMap: Map<string, { blocks: string[]; blocked_by: string[] }> = new Map()
 ): TrackWithDetails[] {
   // Build lookup maps
   const tracksById = new Map<string, Track>();
@@ -37,12 +39,15 @@ export function buildTrackTree(
     const children = childrenByParentId.get(track.id) || [];
     const kind = deriveKind(track, children);
     const files = fileMap.get(track.id) || [];
+    const deps = dependencyMap.get(track.id) || { blocks: [], blocked_by: [] };
 
     tracksWithDetails.push({
       ...track,
       kind,
       files,
       children: children.map((child) => child.id),
+      blocks: deps.blocks,
+      blocked_by: deps.blocked_by,
     });
   }
 

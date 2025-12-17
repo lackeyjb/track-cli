@@ -35,10 +35,13 @@ export function showCommand(trackId: string, options: ShowCommandOptions): void 
     // 3. Load all track-file associations
     const fileMap = lib.getAllTrackFiles(dbPath);
 
-    // 4. Build tree structure with derived fields
-    const tracksWithDetails = buildTrackTree(tracks, fileMap);
+    // 4. Load all dependencies
+    const dependencyMap = lib.getAllDependencies(dbPath);
 
-    // 5. Find the requested track
+    // 5. Build tree structure with derived fields
+    const tracksWithDetails = buildTrackTree(tracks, fileMap, dependencyMap);
+
+    // 6. Find the requested track
     const track = tracksWithDetails.find((t) => t.id === trackId);
 
     if (!track) {
@@ -46,7 +49,7 @@ export function showCommand(trackId: string, options: ShowCommandOptions): void 
       process.exit(1);
     }
 
-    // 6. Output in requested format
+    // 7. Output in requested format
     if (options.json) {
       outputJson(track);
     } else {
@@ -96,5 +99,15 @@ function outputHuman(track: TrackWithDetails): void {
 
   if (track.files.length > 0) {
     console.log(`${indent}${formatLabel('files:', track.files.join(', '), labelOptions)}`);
+  }
+
+  if (track.blocks.length > 0) {
+    console.log(`${indent}${formatLabel('blocks:', track.blocks.join(', '), labelOptions)}`);
+  }
+
+  if (track.blocked_by.length > 0) {
+    console.log(
+      `${indent}${formatLabel('blocked by:', track.blocked_by.join(', '), labelOptions)}`
+    );
   }
 }

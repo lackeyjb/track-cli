@@ -10,9 +10,10 @@ This comprehensive guide covers everything you need to know about using Track CL
 4. [Working with Hierarchies](#working-with-hierarchies)
 5. [File Associations](#file-associations)
 6. [Status Management](#status-management)
-7. [Best Practices](#best-practices)
-8. [Common Patterns](#common-patterns)
-9. [Tips and Tricks](#tips-and-tricks)
+7. [Dependencies](#dependencies)
+8. [Best Practices](#best-practices)
+9. [Common Patterns](#common-patterns)
+10. [Tips and Tricks](#tips-and-tricks)
 
 ## Getting Started
 
@@ -471,6 +472,133 @@ track status --json | jq '.tracks | group_by(.status) | map({status: .[0].status
 # Find blocked tracks
 track status --json | jq '.tracks[] | select(.status == "blocked") | {id, title, summary}'
 ```
+
+## Dependencies
+
+Track CLI supports explicit blocking dependencies between tracks. This allows you to model work that must be completed before other work can begin.
+
+### Creating Dependencies
+
+Use `--blocks` when creating or updating tracks:
+
+```bash
+# Create database task first
+track new "Design Database Schema" \
+  --summary "Define tables for user and product data" \
+  --next "Create migration files"
+
+# Get the ID (shown in output or use track status)
+# Let's say it's "DBSCH123"
+
+# Create API task that depends on database
+track new "Build User API" \
+  --summary "REST endpoints for user CRUD" \
+  --next "Waiting on database schema" \
+  --blocks DBSCH123
+
+# The User API track now blocks the Database Schema track
+# Database Schema's status changes to "blocked" automatically
+```
+
+### Understanding the Blocking Relationship
+
+When Track A blocks Track B:
+- Track B is waiting for Track A to complete
+- Track A must be finished before Track B can proceed
+- `blocks` array on Track A contains Track B's ID
+- `blocked_by` array on Track B contains Track A's ID
+
+```bash
+# View dependencies in JSON output
+track status --json | jq '.tracks[] | {id, title, blocks, blocked_by}'
+```
+
+### Automatic Status Changes
+
+Dependencies trigger automatic status changes:
+
+**When adding a dependency:**
+- If blocked track's status is "planned", it auto-changes to "blocked"
+
+**When marking blocker as done:**
+- All blocked tracks are checked
+- If a blocked track has all blockers now done, it auto-changes to "planned"
+
+```bash
+# Complete the database schema
+track update DBSCH123 \
+  --summary "Schema finalized and migrations created" \
+  --next "" \
+  --status done
+
+# Output: "Unblocked tracks: USERAPI456"
+# USERAPI456 status changes from "blocked" to "planned"
+```
+
+### Removing Dependencies
+
+Use `--unblocks` to remove a blocking relationship:
+
+```bash
+track update DBSCH123 \
+  --summary "Decided to do API in parallel" \
+  --next "Continue schema work" \
+  --unblocks USERAPI456
+```
+
+### Cycle Prevention
+
+Track CLI prevents circular dependencies:
+
+```bash
+# A blocks B
+track update A --blocks B
+
+# B blocks A - ERROR: would create a cycle
+track update B --blocks A
+# Error: Adding dependency would create a cycle.
+```
+
+### Multiple Dependencies
+
+Tracks can have multiple blockers or block multiple tracks:
+
+```bash
+# Create prerequisite tracks
+track new "Auth Service" --summary "Authentication module"
+track new "User Service" --summary "User management module"
+
+# Create track that depends on both
+track new "Dashboard" \
+  --summary "Main dashboard - needs auth and user data" \
+  --blocks AUTH123 --blocks USER456
+
+# Dashboard is blocked until BOTH Auth and User services are done
+```
+
+### Querying Dependencies
+
+```bash
+# Find all blocked tracks
+track status --json | jq '.tracks[] | select(.status == "blocked")'
+
+# Find tracks blocking others
+track status --json | jq '.tracks[] | select(.blocks | length > 0) | {id, title, blocks}'
+
+# Find tracks with pending blockers
+track status --json | jq '.tracks[] | select(.blocked_by | length > 0) | {id, title, blocked_by}'
+
+# Build a dependency graph
+track status --json | jq '.tracks[] | {id, title, blocks, blocked_by}'
+```
+
+### Best Practices for Dependencies
+
+1. **Use dependencies sparingly** - Only when there's a true prerequisite relationship
+2. **Document why** - Update summary to explain the dependency
+3. **Keep chains short** - Long dependency chains are hard to manage
+4. **Review regularly** - Dependencies may become stale as plans change
+5. **Prefer parallel work** - If work can be parallelized, don't add artificial dependencies
 
 ## Best Practices
 

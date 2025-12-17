@@ -54,7 +54,14 @@ commandMetadata.forEach((meta) => {
       cmd.action(
         (
           title: string,
-          options: { parent?: string; summary: string; next: string; file?: string[] }
+          options: {
+            parent?: string;
+            summary: string;
+            next: string;
+            file?: string[];
+            worktree?: string;
+            blocks?: string[];
+          }
         ) => {
           newCommand(title, options);
         }
@@ -64,7 +71,15 @@ commandMetadata.forEach((meta) => {
       cmd.action(
         (
           trackId: string,
-          options: { summary: string; next: string; status: string; file?: string[] }
+          options: {
+            summary: string;
+            next: string;
+            status: string;
+            file?: string[];
+            worktree?: string;
+            blocks?: string[];
+            unblocks?: string[];
+          }
         ) => {
           updateCommand(trackId, options);
         }

@@ -13,6 +13,8 @@ export interface UpdateCommandOptions {
   status?: string;
   file?: string[];
   worktree?: string;
+  blocks?: string[];
+  unblocks?: string[];
 }
 
 /**
@@ -73,7 +75,99 @@ export function updateCommand(trackId: string, options: UpdateCommandOptions): v
       lib.addTrackFiles(dbPath, trackId, options.file);
     }
 
-    // 8. Success message
+    // 8. Handle --blocks dependencies (add new blocking relationships)
+    const addedBlocks: string[] = [];
+    if (options.blocks && options.blocks.length > 0) {
+      for (const blockedId of options.blocks) {
+        // Validate blocked track exists
+        if (!lib.trackExists(dbPath, blockedId)) {
+          console.error(`Error: Unknown track id: ${blockedId}`);
+          console.error('The specified blocked track does not exist.');
+          process.exit(1);
+        }
+
+        // Check for cycles
+        if (lib.wouldCreateCycle(dbPath, trackId, blockedId)) {
+          console.error(`Error: Adding dependency would create a cycle.`);
+          console.error(`Track ${trackId} cannot block ${blockedId}.`);
+          process.exit(1);
+        }
+
+        // Create dependency record
+        lib.addDependency(dbPath, trackId, blockedId);
+
+        // Auto-set blocked track to "blocked" if it's "planned"
+        const blockedTrack = lib.getTrack(dbPath, blockedId);
+        if (blockedTrack && blockedTrack.status === 'planned') {
+          lib.updateTrack(dbPath, blockedId, {
+            summary: blockedTrack.summary,
+            next_prompt: blockedTrack.next_prompt,
+            status: 'blocked',
+            updated_at: getCurrentTimestamp(),
+          });
+        }
+
+        addedBlocks.push(blockedId);
+      }
+    }
+
+    // 9. Handle --unblocks dependencies (remove blocking relationships)
+    const removedBlocks: string[] = [];
+    if (options.unblocks && options.unblocks.length > 0) {
+      for (const blockedId of options.unblocks) {
+        // Remove dependency record (no validation needed - OK if doesn't exist)
+        lib.removeDependency(dbPath, trackId, blockedId);
+
+        // If blocked track has no remaining blockers AND status is "blocked" AND has dependency records
+        // then change to "planned"
+        const blockedTrack = lib.getTrack(dbPath, blockedId);
+        if (blockedTrack && blockedTrack.status === 'blocked') {
+          const remainingBlockers = lib.getBlockersOf(dbPath, blockedId);
+          // Only auto-unblock if there are no remaining blockers and it was dependency-blocked
+          if (remainingBlockers.length === 0) {
+            lib.updateTrack(dbPath, blockedId, {
+              summary: blockedTrack.summary,
+              next_prompt: blockedTrack.next_prompt,
+              status: 'planned',
+              updated_at: getCurrentTimestamp(),
+            });
+          }
+        }
+
+        removedBlocks.push(blockedId);
+      }
+    }
+
+    // 10. Handle status cascade when marked "done"
+    const unblockedTracks: string[] = [];
+    if (status === 'done') {
+      // Get all tracks this one blocks
+      const blockedByThis = lib.getBlockedBy(dbPath, trackId);
+      for (const blockedId of blockedByThis) {
+        const blockedTrack = lib.getTrack(dbPath, blockedId);
+        // Only auto-unblock if:
+        // - Track exists
+        // - Track status is "blocked"
+        // - Track has dependency records (not manually blocked)
+        // - All its blockers are now done
+        if (
+          blockedTrack &&
+          blockedTrack.status === 'blocked' &&
+          lib.hasBlockers(dbPath, blockedId) &&
+          lib.areAllBlockersDone(dbPath, blockedId)
+        ) {
+          lib.updateTrack(dbPath, blockedId, {
+            summary: blockedTrack.summary,
+            next_prompt: blockedTrack.next_prompt,
+            status: 'planned',
+            updated_at: getCurrentTimestamp(),
+          });
+          unblockedTracks.push(blockedId);
+        }
+      }
+    }
+
+    // 11. Success message
     console.log(`Updated track: ${trackId}`);
     console.log(`Status: ${status}`);
     if (options.worktree !== undefined) {
@@ -85,6 +179,15 @@ export function updateCommand(trackId: string, options: UpdateCommandOptions): v
     }
     if (options.file && options.file.length > 0) {
       console.log(`Files: ${options.file.length} file(s) associated`);
+    }
+    if (addedBlocks.length > 0) {
+      console.log(`Now blocks: ${addedBlocks.join(', ')}`);
+    }
+    if (removedBlocks.length > 0) {
+      console.log(`No longer blocks: ${removedBlocks.join(', ')}`);
+    }
+    if (unblockedTracks.length > 0) {
+      console.log(`Unblocked tracks: ${unblockedTracks.join(', ')}`);
     }
   } catch (error) {
     console.error('Error: Failed to update track.');

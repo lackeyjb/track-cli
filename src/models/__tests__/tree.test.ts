@@ -287,5 +287,90 @@ describe('tree building', () => {
         updated_at: '2025-01-02T00:00:00.000Z',
       });
     });
+
+    it('should include blocks and blocked_by from dependencyMap', () => {
+      const tracks: Track[] = [
+        {
+          id: 'blocker',
+          title: 'Blocker Task',
+          parent_id: 'root',
+          summary: '',
+          next_prompt: '',
+          status: 'in_progress',
+          worktree: null,
+          created_at: '2025-01-01T00:00:00.000Z',
+          updated_at: '2025-01-01T00:00:00.000Z',
+        },
+        {
+          id: 'blocked',
+          title: 'Blocked Task',
+          parent_id: 'root',
+          summary: '',
+          next_prompt: '',
+          status: 'blocked',
+          worktree: null,
+          created_at: '2025-01-01T00:00:00.000Z',
+          updated_at: '2025-01-01T00:00:00.000Z',
+        },
+      ];
+
+      const dependencyMap = new Map<string, { blocks: string[]; blocked_by: string[] }>();
+      dependencyMap.set('blocker', { blocks: ['blocked'], blocked_by: [] });
+      dependencyMap.set('blocked', { blocks: [], blocked_by: ['blocker'] });
+
+      const result = buildTrackTree(tracks, new Map(), dependencyMap);
+
+      const blockerTrack = result.find((t) => t.id === 'blocker');
+      const blockedTrack = result.find((t) => t.id === 'blocked');
+
+      expect(blockerTrack?.blocks).toEqual(['blocked']);
+      expect(blockerTrack?.blocked_by).toEqual([]);
+
+      expect(blockedTrack?.blocks).toEqual([]);
+      expect(blockedTrack?.blocked_by).toEqual(['blocker']);
+    });
+
+    it('should return empty blocks/blocked_by when track not in dependencyMap', () => {
+      const tracks: Track[] = [
+        {
+          id: 'task1',
+          title: 'Task',
+          parent_id: 'root',
+          summary: '',
+          next_prompt: '',
+          status: 'planned',
+          worktree: null,
+          created_at: '2025-01-01T00:00:00.000Z',
+          updated_at: '2025-01-01T00:00:00.000Z',
+        },
+      ];
+
+      const result = buildTrackTree(tracks, new Map(), new Map());
+
+      expect(result[0]!.blocks).toEqual([]);
+      expect(result[0]!.blocked_by).toEqual([]);
+    });
+
+    it('should work with default empty dependencyMap', () => {
+      const tracks: Track[] = [
+        {
+          id: 'task1',
+          title: 'Task',
+          parent_id: 'root',
+          summary: '',
+          next_prompt: '',
+          status: 'planned',
+          worktree: null,
+          created_at: '2025-01-01T00:00:00.000Z',
+          updated_at: '2025-01-01T00:00:00.000Z',
+        },
+      ];
+
+      // Call without dependencyMap (uses default)
+      const result = buildTrackTree(tracks, new Map());
+
+      expect(result[0]!.blocks).toEqual([]);
+      expect(result[0]!.blocked_by).toEqual([]);
+    });
   });
 });

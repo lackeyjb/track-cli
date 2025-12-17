@@ -303,6 +303,189 @@ describe('new command', () => {
     });
   });
 
+  describe('dependency support', () => {
+    it('should create track with --blocks dependency', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create track to be blocked
+        newCommand('To Be Blocked', {
+          parent: root?.id,
+          summary: 'Will be blocked',
+          next: 'Waiting',
+        });
+
+        const toBeBlockedId = consoleMock
+          .getLogs()
+          .find((log) => log.includes('Track ID:'))
+          ?.split('Track ID: ')[1];
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocking track
+        newCommand('Blocker', {
+          parent: root?.id,
+          summary: 'Blocks another',
+          next: 'Do first',
+          blocks: [toBeBlockedId!],
+        });
+
+        const logs = consoleMock.getLogs();
+        expect(logs.some((log) => log.includes('Created track: Blocker'))).toBe(true);
+        expect(logs.some((log) => log.includes(`Blocks: ${toBeBlockedId}`))).toBe(true);
+
+        // Verify dependency was created
+        const blockers = lib.getBlockersOf(getDatabasePath(), toBeBlockedId!);
+        expect(blockers).toHaveLength(1);
+      });
+    });
+
+    it('should auto-set blocked track to "blocked" status when initially "planned"', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create track with "planned" status (default)
+        newCommand('Planned Track', {
+          parent: root?.id,
+          summary: 'Initially planned',
+          next: 'Will be blocked',
+        });
+
+        const plannedId = consoleMock
+          .getLogs()
+          .find((log) => log.includes('Track ID:'))
+          ?.split('Track ID: ')[1];
+
+        // Verify initially planned
+        let track = lib.getTrack(getDatabasePath(), plannedId!);
+        expect(track?.status).toBe('planned');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocking track
+        newCommand('Blocker', {
+          parent: root?.id,
+          summary: 'Blocks the planned track',
+          next: 'Do first',
+          blocks: [plannedId!],
+        });
+
+        // Verify track is now blocked
+        track = lib.getTrack(getDatabasePath(), plannedId!);
+        expect(track?.status).toBe('blocked');
+      });
+    });
+
+    it('should exit with error when blocked track does not exist', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        try {
+          newCommand('Blocker', {
+            summary: 'Blocks nonexistent',
+            next: 'Next',
+            blocks: ['NONEXISTENT'],
+          });
+        } catch {
+          // Expected
+        }
+
+        expect(exitMock.wasExitCalled()).toBe(true);
+        expect(exitMock.getExitCode()).toBe(1);
+
+        const errors = consoleMock.getErrors();
+        expect(errors.some((err) => err.includes('Unknown track id: NONEXISTENT'))).toBe(true);
+      });
+    });
+
+    it('should support multiple --blocks dependencies', async () => {
+      await withTempDir(() => {
+        initCommand('Test');
+        const root = lib.getRootTrack(getDatabasePath());
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create two tracks to be blocked
+        newCommand('Track A', {
+          parent: root?.id,
+          summary: 'A',
+          next: 'A',
+        });
+
+        const trackAId = consoleMock
+          .getLogs()
+          .find((log) => log.includes('Track ID:'))
+          ?.split('Track ID: ')[1];
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        newCommand('Track B', {
+          parent: root?.id,
+          summary: 'B',
+          next: 'B',
+        });
+
+        const trackBId = consoleMock
+          .getLogs()
+          .find((log) => log.includes('Track ID:'))
+          ?.split('Track ID: ')[1];
+
+        consoleMock.restore();
+        exitMock.restore();
+        consoleMock = mockConsole();
+        exitMock = mockProcessExit();
+
+        // Create blocker that blocks both
+        newCommand('Multi Blocker', {
+          parent: root?.id,
+          summary: 'Blocks A and B',
+          next: 'Do first',
+          blocks: [trackAId!, trackBId!],
+        });
+
+        const logs = consoleMock.getLogs();
+        expect(logs.some((log) => log.includes('Blocks:'))).toBe(true);
+
+        // Verify both are blocked
+        expect(lib.getBlockersOf(getDatabasePath(), trackAId!)).toHaveLength(1);
+        expect(lib.getBlockersOf(getDatabasePath(), trackBId!)).toHaveLength(1);
+
+        // Verify both have blocked status
+        expect(lib.getTrack(getDatabasePath(), trackAId!)?.status).toBe('blocked');
+        expect(lib.getTrack(getDatabasePath(), trackBId!)?.status).toBe('blocked');
+      });
+    });
+  });
+
   describe('worktree support', () => {
     it('should accept explicit --worktree flag', async () => {
       await withTempDir(() => {
